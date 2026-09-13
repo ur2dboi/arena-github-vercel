@@ -1492,9 +1492,13 @@ const APPT = {
 
   const isClosed   = d => live.closed.indexOf(ymd(d)) >= 0 ||
                           APPT.closed.includes(ymd(d)) || APPT.closedWeekdays.includes(d.getDay());
-  const takenSlots = d => (live.booked[ymd(d)] || [])
-                            .concat(APPT.booked[ymd(d)] || [])
-                            .concat(readLocal()[ymd(d)] || []);
+  /* The database is the source of truth whenever it answers: a slot the shop
+     cancels or deletes must reopen on every device — including the phone that
+     booked it. The per-device mirror only guards against double-booking while
+     the backend cannot be reached at all. */
+  const takenSlots = d => (live.at ? (live.booked[ymd(d)] || [])
+                                   : (readLocal()[ymd(d)] || []))
+                            .concat(APPT.booked[ymd(d)] || []);
   const inRange    = d => today <= d && d <= horizon;
 
   function slotTaken(d, i) {

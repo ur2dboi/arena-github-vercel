@@ -21,6 +21,7 @@ const day = (n) => { const d = new Date(); d.setDate(d.getDate() + n); d.setHour
 async function testSite() {
   const TARGET = day(3), CLOSED = day(5);
   const TAKEN = ['1:00 PM', '4:00 PM'];
+  const dbBooked = [];                 // rows "written" by the mock backend
   const calls = [];
   let posted = null;
 
@@ -36,11 +37,12 @@ async function testSite() {
       w.fetch = async (url, opts) => {
         const body = opts && opts.body ? JSON.parse(opts.body) : null;
         calls.push({ url: String(url), body });
-        if (!body) {   // availability GET
-          const booked = {}; booked[ymd(TARGET)] = TAKEN.slice();
+        if (!body) {   // availability GET — mirrors the real DB: rows exist at once
+          const booked = {}; booked[ymd(TARGET)] = TAKEN.concat(dbBooked);
           return { ok: true, status: 200, json: async () => ({ ok: true, slots: [], booked, closed: [ymd(CLOSED)], updated: 'now' }) };
         }
         posted = body;
+        if (body.action === 'book') dbBooked.push(body.time);
         return { ok: true, status: 200, json: async () => ({ ok: true, id: 'HX-260913-8QT4' }) };
       };
     }

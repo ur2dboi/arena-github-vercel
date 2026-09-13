@@ -225,6 +225,7 @@ setTimeout(async () => {
   if (typeof runConfigScenario === 'function') await runConfigScenario();
   // ---------- 8. lead-time guard ----------
   if (typeof runLeadTimeScenario === 'function') await runLeadTimeScenario();
+  if (typeof runDeletedSlotScenario === 'function') await runDeletedSlotScenario();
 
   check('no uncaught script errors', errors.length === 0, errors.join(' | '));
 
@@ -319,4 +320,50 @@ async function runLeadTimeScenario() {
   // the day *before* today must not be reachable at all
   const yesterday = q('#calGrid button[data-date="2026-09-12"]');
   check('[lead] yesterday not selectable (or absent)', !yesterday || yesterday.disabled);
+}
+
+// ---------- fourth DOM: a deleted/cancelled booking must reopen the slot ----------
+async function runDeletedSlotScenario() {
+  const { JSDOM: J } = require('jsdom');
+  const target = new Date(); target.setDate(target.getDate() + 4); target.setHours(0,0,0,0);
+  const key = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  const SLOTS7 = ['12:00 NN','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM'];
+
+  const d4 = new J(html, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/',
+    beforeParse(w) {
+      // this device previously booked 4:00 PM on the target day
+      w.localStorage.setItem('huxley_bookings', JSON.stringify({ [key(target)]: ['4:00 PM'] }));
+      w.__live = null;                                    // null = backend unreachable
+      w.fetch = async (url) => {
+        if (String(url).indexOf('action=photos') >= 0) return { ok: true, json: async () => ({ ok: true, photos: {} }) };
+        if (!w.__live) throw new Error('offline');
+        return { ok: true, json: async () => ({ ok: true, slots: SLOTS7, booked: w.__live.booked || {}, closed: [], updated: new Date().toISOString() }) };
+      };
+      const si = w.setInterval.bind(w);                   // capture the slow poll, run it on demand
+      w.setInterval = (fn, ms) => (ms >= 60000 ? (w.__tick = fn, 0) : si(fn, ms));
+      w.IntersectionObserver = class { observe(){} unobserve(){} disconnect(){} };
+      w.Element.prototype.scrollIntoView = function () {};
+      w.URL.createObjectURL = () => 'blob:x'; w.URL.revokeObjectURL = () => {};
+    }
+  });
+  await new Promise(r => setTimeout(r, 250));
+  const w4 = d4.window, doc4 = w4.document;
+  const q = s => doc4.querySelector(s);
+  const slotAt = t => [...doc4.querySelectorAll('#slotGrid .slot')].find(x => x.dataset.slot === t);
+
+  const dayBtn = q('#calGrid button[data-date="' + key(target) + '"]');
+  dayBtn.dispatchEvent(new w4.MouseEvent('click', { bubbles: true }));
+  check('[offline] the device mirror blocks its own booking while the backend is unreachable',
+    !!slotAt('4:00 PM') && slotAt('4:00 PM').disabled);
+
+  w4.__live = { booked: {} };                             // shop deleted the appointment
+  await w4.__tick(); await new Promise(r => setTimeout(r, 120));
+  check('[live] a deleted booking reopens the slot on the device that booked it',
+    !!slotAt('4:00 PM') && !slotAt('4:00 PM').disabled);
+
+  w4.__live = { booked: { [key(target)]: ['4:00 PM'] } }; // someone else booked it server-side
+  await w4.__tick(); await new Promise(r => setTimeout(r, 120));
+  check('[live] a server-booked slot still blocks everywhere',
+    !!slotAt('4:00 PM') && slotAt('4:00 PM').disabled);
 }
