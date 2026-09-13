@@ -3,18 +3,28 @@
 
 /admin
   X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache, no-store, must-revalidate
 
 /admin.html
   X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache, no-store, must-revalidate
 
 /login
   X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache, no-store, must-revalidate
 
 /login.html
   X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache, no-store, must-revalidate
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/*.html
+  Cache-Control: no-cache, no-store, must-revalidate
 
 /*
   X-Content-Type-Options: nosniff
