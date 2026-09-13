@@ -529,25 +529,30 @@ function del_(id) {
   return { ok: true, appointments: list_(), stats: stats_() };
 }
 
+/* Sheets hands the date column back as a real Date, so never compare the cell
+   to the 'yyyy-mm-dd' string the portal sent - normalise both sides first, or
+   the block can never be found again (it silently refused to unblock). */
 function block_(date, time, reason) {
   var sh = sheet_(SHEET_BLOCK);
+  var want = ymd_(date);
   each_(ss_(), SHEET_BLOCK, function (r, i) {
-    if (r[0] === date && (r[1] || 'ALL') === time) sh.deleteRow(i);
+    if (ymd_(r[0]) === want && (slot_(r[1]) || 'ALL') === time) sh.deleteRow(i);
   });
-  sh.appendRow([date, time, reason, new Date()]);
-  log_('admin', 'Blocked ' + date + ' ' + time);
+  sh.appendRow([want, time, reason, new Date()]);
+  log_('admin', 'Blocked ' + want + ' ' + time);
   return { ok: true, blocks: blocks_(), appointments: list_(), stats: stats_() };
 }
 
 function unblock_(date, time) {
   var sh = sheet_(SHEET_BLOCK);
+  var want = ymd_(date);
   var removed = 0;
   for (var i = sh.getLastRow(); i >= 2; i--) {
     var r = sh.getRange(i, 1, 1, 3).getValues()[0];
-    if (r[0] === date && (r[1] || 'ALL') === time) { sh.deleteRow(i); removed++; }
+    if (ymd_(r[0]) === want && (slot_(r[1]) || 'ALL') === time) { sh.deleteRow(i); removed++; }
   }
-  log_('admin', 'Unblocked ' + date + ' ' + time + ' (' + removed + ')');
-  return { ok: true, blocks: blocks_(), appointments: list_(), stats: stats_() };
+  log_('admin', 'Unblocked ' + want + ' ' + time + ' (' + removed + ')');
+  return { ok: true, removed: removed, blocks: blocks_(), appointments: list_(), stats: stats_() };
 }
 
 /* ============================================================

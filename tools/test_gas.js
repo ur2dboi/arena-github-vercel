@@ -298,6 +298,21 @@ check('closed day appears in availability', r.closed.indexOf(d(7)) >= 0);
 r = post(auth({ op: 'unblock', date: d(7), time: 'ALL' }));
 check('the block can be removed', r.ok === true && r.blocks.length === 0);
 
+/* Sheets stores that date cell as a real Date - the block must still come off */
+const asDate = s => { const p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); };
+r = post(auth({ op: 'block', date: d(9), time: 'ALL', reason: 'Sheets-typed date' }));
+SHEETS['Blocks'].rows[SHEETS['Blocks'].rows.length - 1][0] = asDate(d(9));
+r = post(auth({ op: 'unblock', date: d(9), time: 'ALL' }));
+check('a day stored as a Date still unblocks', r.ok === true && r.blocks.length === 0 && r.removed === 1,
+  r.removed + ' removed · ' + JSON.stringify(r.blocks));
+
+r = post(auth({ op: 'block', date: d(11), time: 'ALL', reason: 'first' }));
+SHEETS['Blocks'].rows[SHEETS['Blocks'].rows.length - 1][0] = asDate(d(11));
+r = post(auth({ op: 'block', date: d(11), time: 'ALL', reason: 'second' }));
+check('re-closing the same day does not stack up',
+  (r.blocks || []).filter(b => b.date === d(11)).length === 1, JSON.stringify(r.blocks));
+post(auth({ op: 'unblock', date: d(11), time: 'ALL' }));
+
 /* ================= 6. photos ================= */
 r = json(run('doGet', { parameter: { action: 'photos' } }));
 check('photos endpoint responds when empty', r.ok === true && Object.keys(r.photos).length === 0);

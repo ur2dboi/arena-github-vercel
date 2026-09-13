@@ -612,7 +612,7 @@ document.addEventListener('click', async e => {
     try {
       const out = await admin('unblock', { date, time });
       if (!out.ok) throw new Error(out.error);
-      applyData(out); toast('Block removed');
+      applyData(out); toast(out.removed === 0 ? 'That block was already gone' : 'Block removed');
     } catch (ex) { toast('Failed: ' + ex.message); }
   }
 
