@@ -358,12 +358,14 @@ async function runDeletedSlotScenario() {
     !!slotAt('4:00 PM') && slotAt('4:00 PM').disabled);
 
   w4.__live = { booked: {} };                             // shop deleted the appointment
-  await w4.__tick(); await new Promise(r => setTimeout(r, 120));
+  w4.dispatchEvent(new w4.Event('focus'));                // open tab re-checks on focus
+  await new Promise(r => setTimeout(r, 150));
   check('[live] a deleted booking reopens the slot on the device that booked it',
     !!slotAt('4:00 PM') && !slotAt('4:00 PM').disabled);
 
   w4.__live = { booked: { [key(target)]: ['4:00 PM'] } }; // someone else booked it server-side
-  await w4.__tick(); await new Promise(r => setTimeout(r, 120));
+  doc4.dispatchEvent(new w4.Event('visibilitychange'));   // and a returning tab re-checks too
+  await new Promise(r => setTimeout(r, 150));
   check('[live] a server-booked slot still blocks everywhere',
     !!slotAt('4:00 PM') && slotAt('4:00 PM').disabled);
 }

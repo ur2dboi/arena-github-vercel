@@ -1821,6 +1821,11 @@ const APPT = {
   fetchLive(true);
   fetchPhotos();
   setInterval(() => { if (!document.hidden) fetchLive(true); }, (APPT.refreshSec || 90) * 1000);
+  /* Re-check the moment the page regains attention: an open tab — or the shop
+     switching back from the dashboard after deleting a booking — sees the
+     reopened slot at once instead of waiting for the next poll. */
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) fetchLive(true); });
+  window.addEventListener('focus', () => fetchLive(true));
 })();
 
 /* ---------- footer year ---------- */
