@@ -40,10 +40,10 @@ ok('photos endpoint answers', photos.ok === true, Object.keys(photos.photos || {
 if (!PASS) {
   console.log('(no HUXLEY_PASS given, skipping the admin and booking checks)');
 } else {
-  const bad = await post({ action: 'admin', op: 'status', user: USER, password: 'definitely-not-it' });
+  const bad = await post({ action: 'admin', op: 'list', user: USER, password: 'definitely-not-it' });
   ok('a wrong password is refused', bad.ok === false, bad.error || '');
 
-  const login = await post({ action: 'admin', op: 'status', user: USER, password: PASS });
+  const login = await post({ action: 'admin', op: 'list', user: USER, password: PASS });
   ok('the real login works', login.ok === true, login.error || JSON.stringify(login).slice(0, 120));
   ok('the username is recognised', !login.user || login.user === USER, login.user || '');
 

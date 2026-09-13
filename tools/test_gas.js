@@ -49,6 +49,15 @@ function makeSheet(name) {
           self.rows[row - 1][col - 1] = v;
           return this;
         },
+        setValues(vals) {
+          vals.forEach((line, r) => line.forEach((v, c) => {
+            const rr = row - 1 + r, cc = col - 1 + c;
+            while (self.rows.length <= rr) self.rows.push([]);
+            while (self.rows[rr].length <= cc) self.rows[rr].push('');
+            self.rows[rr][cc] = v;
+          }));
+          return this;
+        },
         setNumberFormat() { return this; }, setFontWeight() { return this; }, setBackground() { return this; }
       };
     }
@@ -125,7 +134,9 @@ const sandbox = {
       const p = n => String(n).padStart(2, '0');
       const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
       const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      const h12 = d.getHours() % 12 || 12, ap = d.getHours() < 12 ? 'AM' : 'PM';
       return fmt
+        .replace('h:mm a', h12 + ':' + p(d.getMinutes()) + ' ' + ap)
         .replace('EEEE, d MMMM yyyy', days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear())
         .replace('yyyy', d.getFullYear()).replace('yy', String(d.getFullYear()).slice(2))
         .replace('MM', p(d.getMonth() + 1)).replace('dd', p(d.getDate()))
@@ -363,6 +374,27 @@ check('bound script still works', r.ok === true, r.error);
   }
   SHEETS['Appointments'] = saved;
   check('normal operation resumes after the guard', run('sheet_', 'Appointments') === saved);
+})();
+
+
+/* Sheets hands back real Dates and numbers. If the backend reads them raw, a
+   booked slot stops matching the slot list and the same slot can be sold twice. */
+(function () {
+  const sh = SHEETS['Appointments'];
+  const saved = sh.rows.slice();
+  sh.rows.push(['HX-DATETEST', '2026-09-13 10:00',
+    new Date(2026, 9, 28, 0, 0),        // date, stored by Sheets as a Date
+    new Date(1899, 11, 30, 15, 0),      // 3:00 PM, stored as a Date
+    'Ana Reyes', 9990000001, 'ana@example.com', 2, '', 'Pending', 'Unpaid', '', '']);
+  const av = json(run('doGet', { parameter: { action: 'availability' } }));
+  check('a Date-typed date is read back as yyyy-mm-dd', !!av.booked['2026-10-28'], JSON.stringify(Object.keys(av.booked)));
+  check('a Date-typed time is read back as the slot label', (av.booked['2026-10-28'] || []).join() === '3:00 PM', (av.booked['2026-10-28'] || []).join());
+  const rows = run('list_');
+  const last = rows[rows.length - 1];
+  check('the portal shows the plain date', last.date === '2026-10-28', last.date);
+  check('the portal shows the plain time', last.time === '3:00 PM', last.time);
+  check('a phone number keeps its leading zero', last.phone === '09990000001', String(last.phone));
+  sh.rows = saved;
 })();
 
 /* ================= report ================= */

@@ -327,11 +327,34 @@ let DATA  = { appointments: [], blocks: [], stats: {}, photos: {} };
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const toast = msg => { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._h); toast._h = setTimeout(() => t.classList.remove('show'), 3200); };
 
-async function api(payload) {
-  const res = await fetch(URL_, { method: 'POST', body: JSON.stringify(payload), redirect: 'follow' });
-  if (!res.ok) throw new Error('Network error ' + res.status);
-  return res.json();
+/* This browser may still hold an address saved from an earlier visit (an old
+   deployment, say). Rather than lock the shop out with "sign in not working",
+   fall back to the address built into this page and adopt it silently. */
+async function send(url, payload) {
+  let out, failed = false;
+  try {
+    const res = await fetch(url, { method: 'POST', body: JSON.stringify(payload), redirect: 'follow' });
+    if (!res.ok) throw new Error('Network error ' + res.status);
+    out = await res.json();
+    failed = !!(out && out.ok === false);
+  } catch (ex) {
+    failed = true;
+    out = { ok: false, error: ex.message };
+  }
+  if (failed && DEFAULT_URL && url !== DEFAULT_URL) {
+    const retry = await send(DEFAULT_URL, payload);
+    if (retry && retry.ok !== false) {
+      URL_ = DEFAULT_URL;
+      localStorage.setItem('huxley_api', DEFAULT_URL);
+      toast('Using the shop\u2019s own backend address.');
+    }
+    return retry;
+  }
+  URL_ = url;
+  if (url) localStorage.setItem('huxley_api', url);
+  return out;
 }
+const api = payload => send(URL_, payload);
 const admin = (op, extra) => api(Object.assign({ action: 'admin', op, user: USER_, password: PASS }, extra || {}));
 
 /* ---------------- login ---------------- */

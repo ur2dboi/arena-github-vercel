@@ -78,7 +78,7 @@ function setup() {
   var b = tab(ss, SHEET_BLOCK, BLOCK_HEADERS);
   tab(ss, SHEET_LOG, LOG_HEADERS);
   tab(ss, SHEET_PHOTOS, PHOTO_HEADERS);
-  ['C','D'].forEach(function (c) { a.getRange(c + '2:' + c + '1000').setNumberFormat('@'); });
+  ['B','C','D'].forEach(function (c) { a.getRange(c + '2:' + c + '1000').setNumberFormat('@'); });
   ['A','B'].forEach(function (c) { b.getRange(c + '2:' + c + '1000').setNumberFormat('@'); });
 
   // make the Drive folder for website photos, and remember it
@@ -275,14 +275,14 @@ function availability() {
 
   each_(ss, SHEET_APPTS, function (r) {
     if (String(r[9] || 'Pending') === 'Cancelled') return;
-    var d = r[2], t = r[3];
+    var d = ymd_(r[2]), t = slot_(r[3]);
     if (!d || !t) return;
     booked[d] = booked[d] || [];
     if (booked[d].indexOf(t) < 0) booked[d].push(t);
   });
 
   each_(ss, SHEET_BLOCK, function (r) {
-    var d = r[0], t = r[1] || 'ALL';
+    var d = ymd_(r[0]), t = slot_(r[1]) || 'ALL';
     if (!d) return;
     if (t === 'ALL') { closed.push(d); return; }
     booked[d] = booked[d] || [];
@@ -315,8 +315,12 @@ function book_(b) {
 
     var id = 'HX-' + Utilities.formatDate(new Date(), TZ, 'yyMMdd') + '-' +
              Math.random().toString(36).slice(2, 6).toUpperCase();
-    sheet_(SHEET_APPTS).appendRow(
-      [id, new Date(), b.date, b.time, b.name, b.phone, b.email, pax, b.notes || '', 'Pending', 'Unpaid', '', '']);
+    var sh = sheet_(SHEET_APPTS);
+      var row = sh.getLastRow() + 1;
+      var dStr = ymd_(b.date), tStr = slot_(b.time), pStr = phoneText_(b.phone);
+      sh.getRange(row, 2, 1, 3).setNumberFormat('@');   // phone, date, time: keep exactly as typed
+      sh.getRange(row, 1, 1, 13).setValues(
+        [[id, new Date(), dStr, tStr, b.name, pStr, b.email, pax, b.notes || '', 'Pending', 'Unpaid', '', '']]);
     log_('website', 'New booking ' + id);
     notify_(id, b, pax);
     return { ok: true, id: id };
@@ -327,11 +331,13 @@ function book_(b) {
 
 function notify_(id, b, pax) {
   var owner = prop_('OWNER_EMAIL') || Session.getEffectiveUser().getEmail();
-  var nice = nice_(b.date);
+  var nice = nice_(ymd_(b.date));
+    var at = slot_(b.time);
+    var tel = phoneText_(b.phone);
   try {
-    MailApp.sendEmail(owner, 'New appointment — ' + nice + ', ' + b.time + ' (' + b.name + ')', [
+    MailApp.sendEmail(owner, 'New appointment — ' + nice + ', ' + at + ' (' + b.name + ')', [
       'Reference:   ' + id, 'Date:        ' + nice, 'Time:        ' + b.time,
-      'Client:      ' + b.name, 'Contact:     ' + b.phone, 'Email:       ' + b.email,
+      'Client:      ' + b.name, 'Contact:     ' + tel, 'Email:       ' + b.email,
       'Person/s:    ' + pax + ' (max 3)', '', 'Purpose / notes:', b.notes || '—', '',
       'Policy acknowledged, ₱1,000 reservation fee understood.', '',
       'Manage this appointment in your admin portal.'
@@ -342,7 +348,7 @@ function notify_(id, b, pax) {
     MailApp.sendEmail(b.email, 'We received your appointment request — Huxley Jewelry Creations', [
       'Hi ' + String(b.name).split(' ')[0] + ',', '',
       'Thank you for booking with Huxley Jewelry Creations. We have received your appointment request:', '',
-      'Reference:   ' + id, 'Date:        ' + nice, 'Time:        ' + b.time, 'Person/s:    ' + pax, '',
+      'Reference:   ' + id, 'Date:        ' + nice, 'Time:        ' + at, 'Person/s:    ' + pax, '',
       'We will reply to confirm your slot. Your Google Maps location will be provided together with your appointment confirmation.', '',
       'Reminder: a ₱1,000 reservation fee secures your appointment and is fully deducted from the total cost of your customized wedding ring should you proceed with the order. The fee is non-refundable for cancellation, rescheduling, non-appearance, or change of mind.', '',
       'Maraming salamat!', 'Huxley Jewelry Creations', prop_('OWNER_PHONE') || '0976 463 7003'
@@ -415,7 +421,7 @@ function list_() {
     out.push({
       row: i, id: r[0],
       submitted: r[1] ? Utilities.formatDate(new Date(r[1]), TZ, 'yyyy-MM-dd HH:mm') : '',
-      date: r[2], time: r[3], name: r[4], phone: r[5], email: r[6], pax: r[7],
+      date: ymd_(r[2]), time: slot_(r[3]), name: r[4], phone: phoneText_(r[5]), email: r[6], pax: r[7],
       notes: r[8], status: r[9] || 'Pending', fee: r[10] || 'Unpaid',
       confirmedAt: r[11] ? Utilities.formatDate(new Date(r[11]), TZ, 'yyyy-MM-dd HH:mm') : '',
       shopNote: r[12] || ''
@@ -427,7 +433,7 @@ function list_() {
 function blocks_() {
   var out = [];
   each_(ss_(), SHEET_BLOCK, function (r) {
-    out.push({ date: r[0], time: r[1] || 'ALL', reason: r[2] || '' });
+    out.push({ date: ymd_(r[0]), time: slot_(r[1]) || 'ALL', reason: r[2] || '' });
   });
   return out;
 }
@@ -623,6 +629,35 @@ function sheet_(name) {
   throw new Error('The spreadsheet "' + ss.getName() + '" has no "' + name + '" tab yet, so the ' +
     'backend has nothing to write to. Fix it in 10 seconds: in this project, choose the function ' +
     'setup in the toolbar dropdown and press Run once. That creates every tab and the photo folder.');
+}
+
+/* Google Sheets quietly turns "2026-10-28", "3:00 PM" and "09991234567" into
+   dates, times and numbers. Read those back the way the shop typed them, or a
+   booked slot stops matching the slot list and gets sold twice. */
+function isDate_(v) { return Object.prototype.toString.call(v) === '[object Date]'; }
+function ymd_(v) {
+  if (isDate_(v)) return Utilities.formatDate(v, TZ, 'yyyy-MM-dd');
+  var s = String(v == null ? '' : v).trim();
+  return /^\d{4}-\d{2}-\d{2}/.test(s) ? s.slice(0, 10) : s;
+}
+function slot_(v) {
+  var i, s;
+  if (isDate_(v)) {
+    s = Utilities.formatDate(v, TZ, 'h:mm a');
+    for (i = 0; i < SLOTS.length; i++) if (SLOTS[i].toLowerCase() === s.toLowerCase()) return SLOTS[i];
+    return s;
+  }
+  s = String(v == null ? '' : v).trim();
+  for (i = 0; i < SLOTS.length; i++) if (SLOTS[i].toLowerCase() === s.toLowerCase()) return SLOTS[i];
+  return s;
+}
+function phoneText_(v) {
+  if (v === '' || v === null || v === undefined) return '';
+  if (typeof v === 'number') {
+    var s = String(Math.round(v));
+    return (s.length === 10 && s.charAt(0) === '9') ? '0' + s : s;   // the leading 0 Sheets ate
+  }
+  return String(v);
 }
 
 function prop_(k) {

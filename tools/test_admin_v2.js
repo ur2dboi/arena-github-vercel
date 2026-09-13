@@ -264,9 +264,35 @@ async function testSite() {
     plain.window.document.querySelector('img[data-photo="hero"]').getAttribute('src') === 'assets/img/hero.jpg');
 }
 
+
+/* ---- a browser holding an OLD backend address must not be locked out ---- */
+async function testStaleAddress() {
+  const OLD = 'https://script.google.com/macros/s/AKfyOLD/exec';
+  const seen = [];
+  const d = new JSDOM(CONFIGURED, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/admin.html',
+    beforeParse(w) {
+      w.localStorage.setItem('huxley_api', OLD);          // saved on an earlier visit
+      w.fetch = async (url, opts) => {
+        seen.push(url);
+        if (url === OLD) return { ok: true, json: async () => ({ ok: false, error: 'Cannot read properties of null' }) };
+        return { ok: true, json: async () => ({ ok: true, appointments: [] , blocks: [], stats: {}, photos: {}, user: 'adminhuxley' }) };
+      };
+    }
+  });
+  const w = d.window, q = sel => w.document.querySelector(sel);
+  q('#a-user').value = 'adminhuxley'; q('#a-pass').value = 'huxley2026';
+  q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
+  await new Promise(r => setTimeout(r, 300));
+  check('[stale] the old saved address is retried with the built-in one', seen.includes(OLD) && seen.includes(API), seen.map(u => u.includes('AKfyOLD') ? 'old' : 'built-in').join(' → '));
+  check('[stale] sign-in still succeeds', !q('#appView').hidden, q('#loginErr').textContent);
+  check('[stale] the browser now remembers the working address', w.localStorage.getItem('huxley_api') === API, w.localStorage.getItem('huxley_api'));
+}
+
 (async () => {
   await testAdmin();
   await testUrlFieldFallbacks();
+  await testStaleAddress();
   await testSite();
   console.log('\nPASS (' + ok.length + ')');
   ok.forEach(t => console.log('  ✓ ' + t));
