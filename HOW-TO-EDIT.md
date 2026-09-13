@@ -20,7 +20,12 @@ const SITE = {
 };
 ```
 
-Change a value and **every** phone number, email link, address and hours text on the page updates automatically — header, buttons, contact card, footer.
+Change a value and every phone number and Facebook link on the page updates automatically —
+header, buttons, contact card and footer.
+
+The `address` line is kept for the record only; it is not shown anywhere on the site, and
+neither is the email address as text. The email sits behind the **Send an email** button in
+the closing section, and is used as a fallback if a booking can never reach the sheet.
 
 > ⚠️ **Please confirm the email address.** You only gave me the phone number, so I used
 > `huxleyjewelrycreations@gmail.com` as a placeholder. Replace it with your real email (or create that one).
