@@ -45,6 +45,9 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold-2);
 .hint{font-size:.78rem;color:var(--muted);margin-top:14px}
 .err{display:none;background:#FDF1EC;border:1px solid rgba(192,80,58,.35);color:#8E3A26;border-radius:10px;padding:11px 14px;font-size:.84rem;margin-bottom:14px}
 .err.show{display:block}
+.linklike{background:none;border:0;border-bottom:1px solid transparent;color:var(--muted);font-family:var(--sans);font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:3px 1px}
+.linklike:hover{color:var(--gold);border-bottom-color:var(--gold-line)}
+.linklike[aria-expanded="true"]{color:var(--gold)}
 .ok{display:none;background:#F0F7F0;border:1px solid rgba(47,107,62,.3);color:#2F6B3E;border-radius:10px;padding:11px 14px;font-size:.84rem;margin-bottom:14px}
 .ok.show{display:block}
 
@@ -130,10 +133,10 @@ tr.soon td{background:rgba(220,193,121,.10)}
     <h2 style="text-align:center;font-size:1.5rem">Admin portal</h2>
     <p style="text-align:center;font-size:.86rem;color:var(--muted);margin:.6em 0 1.6em">Appointments, availability, photos and orders</p>
     <div class="err" id="loginErr"></div>
-    <div class="field" id="urlField">
+    <div class="field" id="urlField" hidden>
       <label for="a-url">Backend URL</label>
       <input id="a-url" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
-      <p class="hint" style="margin-top:8px">The Web App URL from your Apps Script deployment. Saved in this browser only.</p>
+      <p class="hint" style="margin-top:8px">The Web App URL from your Apps Script deployment. Stored in this browser only. It is not a password — the URL alone cannot read anything.</p>
     </div>
     <div class="field">
       <label for="a-user">Username</label>
@@ -145,6 +148,9 @@ tr.soon td{background:rgba(220,193,121,.10)}
     </div>
     <button class="btn btn-gold" type="submit" style="width:100%">Sign in</button>
     <p class="hint">Signed in from a shared computer? Close the tab when you are finished — your session ends with it.</p>
+    <p style="text-align:center;margin:16px 0 0">
+      <button type="button" class="linklike" id="toggleUrl" aria-expanded="false" aria-controls="urlField">Backend settings</button>
+    </p>
   </form>
 </div>
 
@@ -328,6 +334,19 @@ $('#a-url').value = URL_ === DEFAULT_URL ? '' : URL_;
 $('#a-user').value = USER_;
 if (PASS && USER_) showApp();
 
+/* The backend URL is a deployment detail, not something the shop needs to see.
+   It stays tucked away unless there is genuinely no address to work with, or a
+   connection actually fails — then it appears with a nudge. */
+const urlField = $('#urlField'), toggleUrl = $('#toggleUrl');
+function showUrlField(show) {
+  urlField.hidden = !show;
+  toggleUrl.setAttribute('aria-expanded', String(show));
+  toggleUrl.textContent = show ? 'Hide backend settings' : 'Backend settings';
+  if (show) $('#a-url').value = $('#a-url').value || DEFAULT_URL;
+}
+toggleUrl.addEventListener('click', () => showUrlField(urlField.hidden));
+if (!URL_) showUrlField(true);          // nothing to try if it is not configured
+
 $('#loginForm').addEventListener('submit', async e => {
   e.preventDefault();
   const url = ($('#a-url').value || DEFAULT_URL).trim();
@@ -354,8 +373,10 @@ $('#loginForm').addEventListener('submit', async e => {
     applyData(out);
     showApp();
   } catch (ex) {
-    err.textContent = /Failed to fetch|Network error/.test(ex.message)
-      ? 'Could not reach the backend. Check the URL, and that the Web App is deployed with access set to "Anyone".'
+    const looksLikeAddress = /Failed to fetch|Network error/.test(ex.message);
+    if (looksLikeAddress) showUrlField(true);
+    err.textContent = looksLikeAddress
+      ? 'Could not reach the backend. Check the address in Backend settings below, and that the Web App is deployed with access set to "Anyone".'
       : ex.message;
     err.classList.add('show');
   } finally {

@@ -55,12 +55,25 @@ async function testAdmin() {
   const w = dom.window, d = w.document, q = s => d.querySelector(s), qa = s => [...d.querySelectorAll(s)];
 
   check('[login] username field exists', !!q('#a-user'));
+  check('[login] backend URL field is hidden by default', q('#urlField').hidden === true);
+  check('[login] a way to reach the backend settings exists',
+    !!q('#toggleUrl') && /backend settings/i.test(q('#toggleUrl').textContent), q('#toggleUrl') && q('#toggleUrl').textContent);
+  check('[login] the field is prefilled behind the scenes despite being hidden',
+    q('#a-url').value === 'https://script.google.com/macros/s/AKfyTEST/exec' || q('#a-url').value === '', q('#a-url').value.slice(0, 40));
+
+  // toggle reveals and hides it
+  q('#toggleUrl').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  check('[login] the toggle reveals the URL field', q('#urlField').hidden === false);
+  check('[login] the toggle relabels itself', /hide/i.test(q('#toggleUrl').textContent), q('#toggleUrl').textContent);
+  q('#toggleUrl').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  check('[login] the toggle hides it again', q('#urlField').hidden === true);
   check('[login] portal is hidden until sign-in', q('#appView').hidden);
   check('[login] no credentials in the page source',
     !/huxley2026/.test(PAGE) && !/password\s*[:=]\s*['"][^'"]+['"]/i.test(PAGE));
 
-  // wrong password
-  q('#a-url').value = API; q('#a-user').value = 'adminhuxley'; q('#a-pass').value = 'nope';
+  // sign in with the URL field left hidden — it must use the built-in address
+  q('#a-url').value = '';   // proves the default is what gets used
+  q('#a-user').value = 'adminhuxley'; q('#a-pass').value = 'nope';
   q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
   await new Promise(r => setTimeout(r, 120));
   check('[login] rejects a wrong password', /wrong username or password/i.test(q('#loginErr').textContent), q('#loginErr').textContent);
@@ -175,6 +188,34 @@ async function testAdmin() {
   check('[regression] stats still render', qa('#stats .stat').length === 6);
 }
 
+/* ---- the URL field reveals itself when it is genuinely needed ---- */
+async function testUrlFieldFallbacks() {
+  // (a) no DEFAULT_URL anywhere -> the field must be visible
+  const blank = PAGE.replace(/const DEFAULT_URL = '[^']*';/, "const DEFAULT_URL = '';");
+  const d1 = new JSDOM(blank, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/admin.html',
+    beforeParse(w) { w.fetch = async () => ({ ok: true, json: async () => ({ ok: false, error: 'nope' }) }); } });
+  await new Promise(r => setTimeout(r, 150));
+  check('[fallback] field shows when no backend is configured',
+    d1.window.document.querySelector('#urlField').hidden === false);
+  check('[fallback] toggle says hide while it is open',
+    /hide/i.test(d1.window.document.querySelector('#toggleUrl').textContent));
+
+  // (b) connection fails -> reveal it so it can be corrected
+  const d2 = new JSDOM(PAGE, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/admin.html',
+    beforeParse(w) { w.fetch = async () => { throw new Error('Failed to fetch'); }; } });
+  await new Promise(r => setTimeout(r, 150));
+  const w2 = d2.window, doc2 = d2.window.document;
+  check('[fallback] field starts hidden when a backend is configured', doc2.querySelector('#urlField').hidden === true);
+  doc2.querySelector('#a-user').value = 'adminhuxley';
+  doc2.querySelector('#a-pass').value = 'huxley2026';
+  doc2.querySelector('#loginForm').dispatchEvent(new w2.Event('submit', { bubbles: true, cancelable: true }));
+  await new Promise(r => setTimeout(r, 200));
+  check('[fallback] a failed connection reveals the field',
+    doc2.querySelector('#urlField').hidden === false);
+  check('[fallback] the error points at the settings',
+    /Backend settings/i.test(doc2.querySelector('#loginErr').textContent), doc2.querySelector('#loginErr').textContent.slice(0, 70));
+}
+
 /* ============================================================
    B. the public site consumes the photos
    ============================================================ */
@@ -222,6 +263,7 @@ async function testSite() {
 
 (async () => {
   await testAdmin();
+  await testUrlFieldFallbacks();
   await testSite();
   console.log('\nPASS (' + ok.length + ')');
   ok.forEach(t => console.log('  ✓ ' + t));

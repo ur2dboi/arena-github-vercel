@@ -118,16 +118,15 @@ Upload `admin.html` along with `index.html` when you deploy. It is `noindex, nof
 
 > "Anyone" sounds alarming but only exposes the two endpoints in the script: reading which slots are taken (no personal data at all) and submitting a booking. Everything in the admin portal needs your password.
 
-**6. Switch the website on**
-- Open `index.html`, find `apiUrl : ''` inside `const APPT = {` (near the bottom), paste your `/exec` URL between the quotes. Save.
-- Open `admin.html`, find `const DEFAULT_URL = ''` near the bottom of the script, paste the same URL.
+**6. Switch the website on** — already done for you
+- `index.html` has `apiUrl` set and `admin.html` has `DEFAULT_URL` set, both pointing at your deployment. If you ever redeploy and get a **new** URL, update those two lines (or just use **Backend settings** on the login screen).
 - Re-upload the files. Done.
 
 If you'd rather not edit the file, skip the `index.html` step: the form will email you instead — but the admin portal only works with the URL in place, since it needs the database.
 
 **7. Sign in to your portal**
 - Open **`your-site.com/admin.html`** — or `huxleyjewelry.vercel.app/admin.html`.
-- Enter the `/exec` URL once, then your **username** and **password**. The browser remembers them (password for the session only).
+- Just enter your **username** and **password** — the backend address is already built into the page. (If you ever need it, there is a small **Backend settings** link under the form.)
 - The first successful sign-in converts your password to a salted SHA-256 hash and deletes the plain one.
 
 > 🔐 **Why the password is not in the website files.** Anything inside `admin.html` or `index.html` can be read by anyone who presses Ctrl+U. So the credentials live only in Google's Script properties, and every sign-in is checked on Google's side. Never paste a password into the code — of any website.
