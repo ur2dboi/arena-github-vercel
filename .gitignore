@@ -1,0 +1,11 @@
+# Scratch and oversized files that are not part of the website
+uploads/
+assets/raw/
+huxley-website.zip
+.npm/
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

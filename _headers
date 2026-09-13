@@ -1,0 +1,15 @@
+# Cloudflare Pages / Netlify headers
+# (Vercel ignores this file — vercel.json does the same job there)
+
+/admin
+  X-Robots-Tag: noindex, nofollow
+
+/admin.html
+  X-Robots-Tag: noindex, nofollow
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

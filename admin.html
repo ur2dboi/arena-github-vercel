@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Admin — Huxley Jewelry Creations</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logo/favicon-32.png">
+<style>
+:root{
+  --cream:#FBF6EA;--cream-2:#F6EEDC;--beige:#EFE3CB;--beige-2:#E7D8BA;
+  --gold:#A9761C;--gold-2:#C79A3C;--gold-soft:#DCC179;
+  --gold-line:rgba(169,118,28,.30);--gold-line-2:rgba(169,118,28,.16);
+  --ink:#2C2820;--ink-2:#574F40;--muted:#7B7260;--white:#FFFDF8;
+  --serif:'Cormorant Garamond','Didot','Times New Roman',serif;
+  --sans:'Jost','Futura','Helvetica Neue',Helvetica,Arial,sans-serif;
+  --metal:linear-gradient(100deg,#E9D08C 0%,#C9A03F 22%,#8F6116 44%,#E4C97E 62%,#B8892F 80%,#F0DEA8 100%);
+  --shadow:0 18px 40px -26px rgba(88,66,20,.42);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--sans);font-weight:300;font-size:15px;line-height:1.6;-webkit-text-size-adjust:100%}
+img{max-width:100%;display:block}
+a{color:var(--gold);text-decoration:none}
+h1,h2,h3{font-family:var(--serif);font-weight:500;margin:0;line-height:1.15}
+button,input,select,textarea{font:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+.metal{background:var(--metal);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;padding:11px 20px;border-radius:100px;border:1px solid transparent;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:.25s;white-space:nowrap}
+.btn-gold{background:var(--metal);color:#3A2A08;box-shadow:0 10px 24px -14px rgba(150,105,25,.8)}
+.btn-gold:hover{transform:translateY(-1px)}
+.btn-ghost{border-color:var(--gold-line);color:var(--gold);background:rgba(255,255,255,.5)}
+.btn-ghost:hover{background:var(--white);border-color:var(--gold)}
+.btn-sm{padding:8px 14px;font-size:.6rem;letter-spacing:.14em}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ---------- login ---------- */
+.login{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(60% 60% at 50% 0%,rgba(220,193,121,.28),rgba(220,193,121,0) 70%),var(--cream)}
+.card{background:var(--white);border:1px solid var(--gold-line-2);border-radius:18px;box-shadow:var(--shadow);padding:clamp(24px,4vw,40px);width:100%;max-width:440px}
+.brand-logo{height:58px;width:auto;margin:0 auto 22px}
+label{display:block;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
+input,select,textarea{width:100%;padding:12px 14px;border:1px solid var(--gold-line-2);border-radius:10px;background:var(--cream);color:var(--ink);font-weight:300}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold-2);background:var(--white);box-shadow:0 0 0 3px rgba(199,154,60,.14)}
+.field{margin-bottom:16px}
+.hint{font-size:.78rem;color:var(--muted);margin-top:14px}
+.err{display:none;background:#FDF1EC;border:1px solid rgba(192,80,58,.35);color:#8E3A26;border-radius:10px;padding:11px 14px;font-size:.84rem;margin-bottom:14px}
+.err.show{display:block}
+
+/* ---------- app shell ---------- */
+.top{position:sticky;top:0;z-index:20;background:rgba(251,246,234,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--gold-line-2)}
+.top .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:70px}
+.top .l{display:flex;align-items:center;gap:14px}
+.top img{height:40px;width:auto}
+.top .who{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+main{padding:26px 0 80px}
+.grid{display:grid;gap:14px}
+.stats{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:22px}
+.stat{background:var(--white);border:1px solid var(--gold-line-2);border-radius:14px;padding:16px 18px}
+.stat .n{font-family:var(--serif);font-size:1.9rem;line-height:1;color:var(--gold)}
+.stat .k{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.toolbar input,.toolbar select{width:auto;min-width:170px;flex:1 1 170px}
+.panel{background:var(--white);border:1px solid var(--gold-line-2);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.panel h3{font-size:1.24rem;padding:18px 20px;border-bottom:1px solid var(--gold-line-2);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:900px}
+th{text-align:left;font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:400;padding:12px 14px;border-bottom:1px solid var(--gold-line-2);white-space:nowrap;background:var(--cream-2)}
+td{padding:14px;border-bottom:1px solid var(--gold-line-2);vertical-align:top;font-size:.9rem}
+tr:last-child td{border-bottom:0}
+tr.soon td{background:rgba(220,193,121,.10)}
+.when{font-family:var(--serif);font-size:1.05rem;white-space:nowrap}
+.when small{display:block;font-family:var(--sans);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-top:3px}
+.who-cell b{font-weight:400;font-family:var(--serif);font-size:1.06rem}
+.who-cell div{font-size:.82rem;color:var(--ink-2)}
+.notes{max-width:260px;font-size:.84rem;color:var(--ink-2);white-space:pre-wrap}
+.pill{display:inline-block;padding:4px 11px;border-radius:100px;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;border:1px solid}
+.p-Pending{color:#8A6410;border-color:rgba(169,118,28,.45);background:rgba(220,193,121,.20)}
+.p-Confirmed{color:#2F6B3E;border-color:rgba(47,107,62,.35);background:rgba(47,107,62,.10)}
+.p-Completed{color:#3A5A8A;border-color:rgba(58,90,138,.35);background:rgba(58,90,138,.10)}
+.p-Cancelled{color:#8E3A26;border-color:rgba(142,58,38,.35);background:rgba(142,58,38,.09)}
+.f-Paid{color:#2F6B3E;border-color:rgba(47,107,62,.35);background:rgba(47,107,62,.10)}
+.f-Unpaid{color:#8A6410;border-color:rgba(169,118,28,.45);background:rgba(220,193,121,.18)}
+.f-Deducted{color:#3A5A8A;border-color:rgba(58,90,138,.35);background:rgba(58,90,138,.10)}
+.acts{display:flex;flex-wrap:wrap;gap:6px}
+.empty{padding:48px 20px;text-align:center;color:var(--muted)}
+.side{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+.mini{background:var(--white);border:1px solid var(--gold-line-2);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+.mini h3{font-size:1.16rem;margin-bottom:12px;padding:0;border:0}
+.row{display:flex;gap:10px;align-items:end}
+.row > *{flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--gold-line-2);background:var(--cream);border-radius:100px;padding:6px 12px;font-size:.78rem}
+.chip button{border:0;background:transparent;color:#8E3A26;cursor:pointer;font-size:.9rem;line-height:1;padding:0}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,140%);background:var(--ink);color:#FFF9EC;padding:12px 20px;border-radius:100px;font-size:.86rem;z-index:60;transition:transform .4s;box-shadow:var(--shadow)}
+.toast.show{transform:translate(-50%,0)}
+.star{width:14px;height:14px;flex:none}
+@media(max-width:820px){.side{grid-template-columns:1fr}.top .who{display:none}}
+@media print{.top,.toolbar,.acts,.side,.toast{display:none}body{background:#fff}}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div class="login" id="loginView">
+  <form class="card" id="loginForm">
+    <img class="brand-logo" src="assets/img/logo-lockup.png" alt="Huxley Jewelry Creations">
+    <h2 style="text-align:center;font-size:1.5rem">Admin portal</h2>
+    <p style="text-align:center;font-size:.86rem;color:var(--var-ink-2);color:var(--muted);margin:.6em 0 1.6em">Appointments, availability and orders</p>
+    <div class="err" id="loginErr"></div>
+    <div class="field" id="urlField">
+      <label for="a-url">Backend URL</label>
+      <input id="a-url" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
+      <p class="hint" style="margin-top:8px">The Web App URL from your Apps Script deployment. Saved in this browser only.</p>
+    </div>
+    <div class="field">
+      <label for="a-pass">Password</label>
+      <input id="a-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-gold" type="submit" style="width:100%">Sign in</button>
+    <p class="hint">Forgot the password? It is the <code>ADMIN_PASSWORD</code> property in your Apps Script project settings.</p>
+  </form>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="appView" hidden>
+  <header class="top">
+    <div class="wrap bar">
+      <div class="l">
+        <img src="assets/img/logo-lockup.png" alt="Huxley Jewelry Creations">
+        <span class="who" id="whoami">Admin</span>
+      </div>
+      <div class="l">
+        <button class="btn btn-ghost btn-sm" id="refreshBtn" type="button">Refresh</button>
+        <button class="btn btn-ghost btn-sm" id="outBtn" type="button">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- stats -->
+    <div class="grid stats" id="stats"></div>
+
+    <!-- toolbar -->
+    <div class="toolbar">
+      <input id="search" type="search" placeholder="Search name, phone, email or reference…">
+      <select id="statusFilter">
+        <option value="">All statuses</option>
+        <option>Pending</option>
+        <option>Confirmed</option>
+        <option>Completed</option>
+        <option>Cancelled</option>
+      </select>
+      <select id="whenFilter">
+        <option value="upcoming">Today &amp; upcoming</option>
+        <option value="today">Today only</option>
+        <option value="past">Past</option>
+        <option value="all">Everything</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" id="csvBtn" type="button">Export CSV</button>
+    </div>
+
+    <!-- appointments -->
+    <div class="panel">
+      <h3>
+        <span>Appointments <span id="count" style="color:var(--muted);font-family:var(--sans);font-size:.7rem;letter-spacing:.2em"></span></span>
+      </h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>When</th><th>Client</th><th>Person/s</th><th>Purpose / notes</th>
+              <th>Status</th><th>Fee</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="empty" hidden>No appointments match this view.</div>
+    </div>
+
+    <!-- availability controls -->
+    <div class="side">
+      <div class="mini">
+        <h3>Block a slot or close a day</h3>
+        <div class="row">
+          <div>
+            <label for="b-date">Date</label>
+            <input id="b-date" type="date">
+          </div>
+          <div>
+            <label for="b-time">Time</label>
+            <select id="b-time"></select>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <div>
+            <label for="b-reason">Reason (optional)</label>
+            <input id="b-reason" type="text" placeholder="e.g. holiday, fully booked, out of town">
+          </div>
+        </div>
+        <button class="btn btn-gold btn-sm" id="blockBtn" type="button" style="margin-top:14px">Block this slot</button>
+        <div class="chips" id="blocks"></div>
+      </div>
+
+      <div class="mini">
+        <h3>How it works</h3>
+        <p style="font-size:.88rem;color:var(--ink-2)">
+          Confirmed and pending appointments are hidden from clients automatically. Use the blockers on the left only for
+          time you are unavailable for other reasons — a holiday, a repair day, or personal time.
+        </p>
+        <p style="font-size:.88rem;color:var(--ink-2)">
+          Marking the reservation fee as <strong>Paid</strong> records the ₱1,000. Use <strong>Deducted</strong> once it has been
+          applied to a completed ring order.
+        </p>
+        <p style="font-size:.82rem;color:var(--muted);margin-bottom:0">
+          Data lives in your Google Sheet — this portal is only a window into it, so you can always open the Sheet directly,
+          on your phone, at the bench.
+        </p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Huxley admin portal — talks to the Apps Script Web App.
+   Password is verified by the backend, never stored in this file.
+   ============================================================ */
+const DEFAULT_URL = '';                     // ← paste your Web App /exec URL here to skip the field
+const SLOTS = ['12:00 NN','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM'];
+
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2, '0');
+const p1 = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+let URL_ = localStorage.getItem('huxley_api') || DEFAULT_URL;
+let PASS = sessionStorage.getItem('huxley_pass') || '';
+let DATA = { appointments: [], blocks: [], stats: {} };
+let hiddenPass = PASS;
+
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toast = msg => { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._h); toast._h = setTimeout(() => t.classList.remove('show'), 2600); };
+
+async function api(payload) {
+  const res = await fetch(URL_, {
+    method: 'POST',
+    body: JSON.stringify(payload),   // text/plain → simple request, no CORS preflight
+    redirect: 'follow'
+  });
+  if (!res.ok) throw new Error('Network error ' + res.status);
+  return res.json();
+}
+
+/* ---------- login ---------- */
+$('#a-url').value = URL_ === DEFAULT_URL ? '' : URL_;
+if (PASS) showApp();
+
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const url = ($('#a-url').value || DEFAULT_URL).trim();
+  const pass = $('#a-pass').value;
+  const err = $('#loginErr');
+  err.classList.remove('show');
+
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(url)) {
+    err.textContent = 'That does not look like a Web App URL. It should start with https://script.google.com/macros/s/ and end with /exec';
+    err.classList.add('show'); return;
+  }
+  if (!pass) { err.textContent = 'Please enter your password.'; err.classList.add('show'); return; }
+
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  try {
+    const out = await api({ action: 'admin', op: 'list', password: pass });
+    if (!out.ok) throw new Error(out.error || 'Sign in failed');
+    URL_ = url; PASS = pass;
+    localStorage.setItem('huxley_api', url);
+    sessionStorage.setItem('huxley_pass', pass);
+    applyData(out);
+    showApp();
+  } catch (ex) {
+    err.textContent = /Failed to fetch|Network error/.test(ex.message)
+      ? 'Could not reach the backend. Check the URL and that you deployed the Web App with access set to "Anyone".'
+      : ex.message;
+    err.classList.add('show');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+});
+
+function showApp() {
+  $('#loginView').hidden = true;
+  $('#appView').hidden = false;
+  $('#whoami').textContent = 'Signed in';
+  $('#b-time').innerHTML = '<option value="ALL">Whole day (closed)</option>' +
+    SLOTS.map(s => '<option>' + s + '</option>').join('');
+  load();
+}
+
+$('#outBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('huxley_pass'); PASS = '';
+  $('#appView').hidden = true; $('#loginView').hidden = false;
+  $('#a-pass').value = '';
+});
+
+/* ---------- data ---------- */
+async function load(silent) {
+  if (!PASS) return;
+  try {
+    applyData(await api({ action: 'admin', op: 'list', password: PASS }));
+    if (!silent) toast('Up to date');
+  } catch (ex) {
+    if (!silent) toast('Could not load: ' + ex.message);
+  }
+}
+
+function applyData(out) {
+  DATA.appointments = out.appointments || [];
+  DATA.blocks = out.blocks || [];
+  DATA.stats = out.stats || {};
+  renderStats(); renderRows(); renderBlocks();
+}
+
+function renderStats() {
+  const s = DATA.stats || {};
+  const cards = [
+    ['Today', s.today || 0], ['Upcoming', s.upcoming || 0], ['Pending', s.pending || 0],
+    ['Confirmed', s.confirmed || 0], ['Total', s.total || 0], ['Fees collected', '₱' + ((s.revenue || 0)).toLocaleString()]
+  ];
+  $('#stats').innerHTML = cards.map(c =>
+    '<div class="stat"><div class="n">' + esc(c[1]) + '</div><div class="k">' + esc(c[0]) + '</div></div>').join('');
+}
+
+function niceDay(iso) {
+  if (!iso) return '';
+  const p = iso.split('-'), d = new Date(+p[0], +p[1] - 1, +p[2]);
+  return DAYS[d.getDay()] + ', ' + d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function visible() {
+  const q = $('#search').value.trim().toLowerCase();
+  const st = $('#statusFilter').value;
+  const when = $('#whenFilter').value;
+  const today = p1(new Date());
+  return DATA.appointments.filter(a => {
+    if (st && a.status !== st) return false;
+    if (when === 'today' && a.date !== today) return false;
+    if (when === 'upcoming' && a.date < today) return false;
+    if (when === 'past' && a.date >= today) return false;
+    if (q) {
+      const hay = [a.name, a.phone, a.email, a.id, a.notes, a.date, a.time].join(' ').toLowerCase();
+      if (hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  }).sort((x, y) => (x.date + x.time).localeCompare(y.date + y.time));
+}
+
+function renderRows() {
+  const list = visible();
+  const today = p1(new Date());
+  $('#count').textContent = list.length ? '· ' + list.length : '';
+  $('#empty').hidden = list.length > 0;
+
+  $('#rows').innerHTML = list.map(a => {
+    const soon = a.date === today;
+    const feeCls = /Paid/i.test(a.fee) ? 'f-Paid' : /Deduct/i.test(a.fee) ? 'f-Deducted' : 'f-Unpaid';
+    return '<tr class="' + (soon ? 'soon' : '') + '" data-id="' + esc(a.id) + '">' +
+      '<td class="when">' + esc(niceDay(a.date)) + '<small>' + esc(a.time) + (soon ? ' · Today' : '') + '</small></td>' +
+      '<td class="who-cell"><b>' + esc(a.name) + '</b>' +
+        '<div>' + esc(a.phone) + '</div>' +
+        '<div>' + esc(a.email) + '</div>' +
+        '<div style="color:var(--muted);font-size:.72rem">' + esc(a.id) + (a.submitted ? ' · sent ' + esc(a.submitted) : '') + '</div>' +
+      '</td>' +
+      '<td>' + esc(a.pax) + '</td>' +
+      '<td class="notes">' + (esc(a.notes) || '<span style="color:var(--muted)">—</span>') +
+        (a.shopNote ? '<div style="margin-top:6px;color:var(--gold)">Note: ' + esc(a.shopNote) + '</div>' : '') + '</td>' +
+      '<td><span class="pill p-' + esc(a.status) + '">' + esc(a.status) + '</span></td>' +
+      '<td><span class="pill ' + feeCls + '">' + esc(a.fee) + '</span></td>' +
+      '<td><div class="acts">' +
+        (a.status !== 'Confirmed' ? '<button class="btn btn-gold btn-sm" data-act="status" data-val="Confirmed">Confirm</button>' : '') +
+        (a.status !== 'Completed' ? '<button class="btn btn-ghost btn-sm" data-act="status" data-val="Completed">Done</button>' : '') +
+        (a.status !== 'Cancelled' ? '<button class="btn btn-ghost btn-sm" data-act="status" data-val="Cancelled">Cancel</button>' : '') +
+        '<button class="btn btn-ghost btn-sm" data-act="fee" data-val="' + (/Paid/i.test(a.fee) ? 'Unpaid' : 'Paid') + '">' +
+          (/Paid/i.test(a.fee) ? 'Fee unpaid' : 'Fee paid') + '</button>' +
+        (/Paid/i.test(a.fee) ? '<button class="btn btn-ghost btn-sm" data-act="fee" data-val="Deducted">Deducted</button>' : '') +
+      '</div></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderBlocks() {
+  $('#blocks').innerHTML = DATA.blocks.length
+    ? DATA.blocks.map(b =>
+        '<span class="chip">' + esc(niceDay(b.date)) + ' · ' + esc(b.time === 'ALL' ? 'whole day' : b.time) +
+        (b.reason ? ' — ' + esc(b.reason) : '') +
+        '<button type="button" data-unblock="' + esc(b.date) + '|' + esc(b.time) + '" title="Remove">×</button></span>').join('')
+    : '<span style="font-size:.82rem;color:var(--muted)">No blocks — the calendar is fully open.</span>';
+}
+
+/* ---------- actions ---------- */
+document.addEventListener('click', async e => {
+  const tr = e.target.closest('tr[data-id]');
+  const btn = e.target.closest('button[data-act]');
+  if (btn && tr) {
+    const id = tr.dataset.id, act = btn.dataset.act, val = btn.dataset.val;
+    btn.disabled = true;
+    try {
+      const out = await api({ action: 'admin', op: act === 'fee' ? 'fee' : 'status', id, [act === 'fee' ? 'fee' : 'status']: val, password: PASS });
+      if (!out.ok) throw new Error(out.error);
+      applyData(out);
+      toast(val === 'Confirmed' ? 'Confirmed — the client has been emailed the details' : 'Updated: ' + val);
+    } catch (ex) { toast('Failed: ' + ex.message); btn.disabled = false; }
+  }
+
+  const un = e.target.closest('button[data-unblock]');
+  if (un) {
+    const [date, time] = un.dataset.unblock.split('|');
+    try {
+      const out = await api({ action: 'admin', op: 'unblock', date, time, password: PASS });
+      if (!out.ok) throw new Error(out.error);
+      applyData(out); toast('Block removed');
+    } catch (ex) { toast('Failed: ' + ex.message); }
+  }
+});
+
+$('#blockBtn').addEventListener('click', async () => {
+  const date = $('#b-date').value, time = $('#b-time').value, reason = $('#b-reason').value;
+  if (!date) return toast('Pick a date first');
+  try {
+    const out = await api({ action: 'admin', op: 'block', date, time, reason, password: PASS });
+    if (!out.ok) throw new Error(out.error);
+    applyData(out); $('#b-reason').value = ''; toast('Blocked ' + niceDay(date));
+  } catch (ex) { toast('Failed: ' + ex.message); }
+});
+
+$('#refreshBtn').addEventListener('click', () => load());
+$('#search').addEventListener('input', renderRows);
+$('#statusFilter').addEventListener('change', renderRows);
+$('#whenFilter').addEventListener('change', renderRows);
+
+/* ---------- CSV ---------- */
+$('#csvBtn').addEventListener('click', () => {
+  const rows = visible();
+  const cols = ['id','date','time','name','phone','email','pax','notes','status','fee','shopNote','submitted'];
+  const head = ['Reference','Date','Time','Client name','Contact number','Email','Person/s','Purpose / notes','Status','Reservation fee','Shop note','Submitted'];
+  const csv = [head.join(',')].concat(rows.map(a =>
+    cols.map(c => '"' + String(a[c] == null ? '' : a[c]).replace(/"/g, '""') + '"').join(',')
+  )).join('\r\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = 'huxley-appointments-' + p1(new Date()) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast('Exported ' + rows.length + ' appointment(s)');
+});
+
+/* refresh every 2 minutes while open so the bench view stays current */
+setInterval(() => { if (PASS && !document.hidden) load(true); }, 120000);
+</script>
+</body>
+</html>

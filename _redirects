@@ -1,0 +1,5 @@
+# Netlify / Cloudflare Pages redirects
+# Nicer admin URL: your-site.com/admin  ->  admin.html
+# (Vercel ignores this file; vercel.json "cleanUrls" does the same there)
+
+/admin      /admin.html     200
