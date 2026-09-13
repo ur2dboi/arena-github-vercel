@@ -51,6 +51,22 @@ setTimeout(async () => {
   check('the footer star stays small', !!fStar && win.getComputedStyle(fStar).width === '12px',
     fStar ? win.getComputedStyle(fStar).width : 'missing');
 
+  // ---------- 0a2. how the shop delivers ----------
+  const heroMeta = doc.querySelector('.hero-meta');
+  check('the hero says the shop ships nationwide and worldwide',
+    !!heroMeta && /nationwide & worldwide/i.test(heroMeta.textContent),
+    heroMeta ? heroMeta.textContent.replace(/\s+/g, ' ').trim() : 'missing .hero-meta');
+  const marquee = doc.querySelector('#marquee');
+  check('the scrolling strip carries the shipping line too',
+    !!marquee && /ships nationwide & worldwide/i.test(marquee.textContent),
+    marquee ? marquee.textContent.slice(0, 60) : 'no marquee');
+  const answers = [...doc.querySelectorAll('details .ans')].map(a => a.textContent).join(' ');
+  check('the payment answer explains where orders ship',
+    /shipped nationwide and worldwide/i.test(answers));
+  check('search and share descriptions promise it as well',
+    /shipped nationwide and worldwide/i.test(doc.querySelector('meta[name="description"]').getAttribute('content')) &&
+    /shipped nationwide and worldwide/i.test(doc.querySelector('meta[property="og:description"]').getAttribute('content')));
+
   // ---------- 0b. gallery slideshow ----------
   const gbox = doc.querySelector('[data-slideshow]');
   check('the gallery is on the page', !!gbox);

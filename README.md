@@ -37,7 +37,7 @@ maintain — plain HTML, CSS and JavaScript.
 - Appointment booking: month calendar → time slots (12 NN – 6 PM) → client details → policy agreement
 - Real availability — booked and blocked slots are crossed out for every visitor
 - Confirmation panel with an "Add to my calendar" (.ics) download
-- Facebook, phone and email contact throughout; nationwide-shipping messaging
+- Facebook, phone and email contact throughout; "Ships nationwide & worldwide" messaging in the hero, the scrolling strip, the delivery answer, the search listing and the structured data
 
 **Admin** — a sign-in page (`/login`) and the dashboard (`/admin`), username + password verified server-side
 - Stats: today, upcoming, pending, confirmed, total, fees collected
