@@ -42,7 +42,7 @@ Replace the files in `assets/img/` — keep the same file names and the site pic
 | `rings.jpg` | Wedding & engagement rings feature |
 | `college-ring.jpg` | College rings feature |
 | `pendant.jpg` `earrings.jpg` `bangles.jpg` `bracelets.jpg` `chains.jpg` | The six collection cards |
-| `workshop.jpg` | "Our Craft" photo **and** the Custom & Repairs card |
+| `workshop-v2.jpg` | "Our Craft" photo **and** the Custom & Repairs card |
 
 Wide/landscape photos (about 1400 × 950 or larger) look best. Your real photos of finished pieces will always beat stock imagery — especially for rings.
 

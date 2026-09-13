@@ -15,7 +15,7 @@ SLOT_FOR = {
     'assets/img/bangles.jpg': 'bangles',
     'assets/img/bracelets.jpg': 'bracelets',
     'assets/img/chains.jpg': 'chains',
-    'assets/img/workshop.jpg': 'workshop',
+    'assets/img/workshop-v2.jpg': 'workshop',
 }
 count = 0
 
