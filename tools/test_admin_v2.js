@@ -246,10 +246,13 @@ async function testSite() {
   const qa = s => [...d.querySelectorAll(s)];
 
   // the owner's way in, from the site itself
-  const adminLink = qa('a[href="/login"]')[0];
-  check('[site] the footer offers an admin sign-in', !!adminLink, adminLink ? adminLink.textContent.trim() : 'no link found');
-  check('[site] that link keeps crawlers out of the admin', !!adminLink && adminLink.getAttribute('rel') === 'nofollow');
-  check('[site] it does not sit in the main menu', !qa('nav a[href="/login"]').length);
+  const adminLinks = qa('a[href="/login"]');
+  const adminLink = qa('header a[href="/login"]')[0];
+  check('[site] the header offers an admin sign-in', !!adminLink, adminLink ? adminLink.textContent.trim() : 'no link found');
+  check('[site] phone visitors reach it from the menu too', adminLinks.length >= 2, adminLinks.length + ' link(s)');
+  check('[site] those links keep crawlers out of the admin', adminLinks.every(a => a.getAttribute('rel') === 'nofollow'));
+  check('[site] it stays out of the customers menu', !qa('nav a[href="/login"]').length);
+  check('[site] the footer no longer carries it', !qa('footer a[href="/login"]').length);
 
   check('[site] the site asks for photos on load', calls.some(u => /action=photos/.test(u)), calls.join(' | ').slice(0, 80));
   check('[site] hero photo swapped to the shop\'s own', qa('img[data-photo="hero"]')[0].getAttribute('src') === 'https://lh3.googleusercontent.com/d/HERO',
@@ -313,6 +316,10 @@ async function testSignIn() {
 
   const d1 = mk(); const w1 = d1.window, q1 = sel => w1.document.querySelector(sel);
   check('[signin] it is the sign-in page', /sign in/i.test(w1.document.title), w1.document.title);
+  const backHome = q1('a[href="/"]');
+  check('[signin] it offers a way back to the home page', !!backHome,
+    backHome ? backHome.textContent.trim() : 'no link found');
+  check('[signin] that way back is on show, not hidden', !!backHome && backHome.hidden === false);
   check('[signin] it asks for username and password only', !!q1('#a-user') && !!q1('#a-pass') && !q1('#photoGrid'));
   check('[signin] no setup note is printed on the sign-in page',
     !/not connected|setup-backend/i.test(w1.document.body.textContent), w1.document.body.textContent.replace(/\s+/g, ' ').slice(0, 80));

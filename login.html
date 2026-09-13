@@ -26,6 +26,7 @@ h1,h2,h3{font-family:var(--serif);font-weight:500;margin:0;line-height:1.15}
 button,input,select,textarea{font:inherit}
 .wrap{max-width:1240px;margin:0 auto;padding:0 20px}
 .btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;padding:11px 20px;border-radius:100px;border:1px solid transparent;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:.25s;white-space:nowrap}
+.btn svg{width:15px;height:15px;flex:none}   /* an icon never decides how big a button is */
 .btn-gold{background:var(--metal);color:#3A2A08;box-shadow:0 10px 24px -14px rgba(150,105,25,.8)}
 .btn-gold:hover{transform:translateY(-1px)}
 .btn-ghost{border-color:var(--gold-line);color:var(--gold);background:rgba(255,255,255,.5)}
@@ -151,6 +152,10 @@ tr.soon td{background:rgba(220,193,121,.10)}
       <input id="a-pass" type="password" placeholder="••••••••" autocomplete="current-password">
     </div>
     <button class="btn btn-gold" type="submit" style="width:100%">Sign in</button>
+    <a class="btn btn-ghost" href="/" style="width:100%;margin-top:10px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10.4V19h11v-8.6"/></svg>
+      Back to home
+    </a>
     <p class="hint">Signed in from a shared computer? Close the tab when you are finished — your session ends with it.</p>
   </form>
 </div>
