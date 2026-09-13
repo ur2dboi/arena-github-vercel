@@ -106,6 +106,13 @@ Upload `login.html` and `admin.html` along with `index.html` when you deploy. It
 | `SHOP_MAPS` | your Google Maps link | Sent automatically when you confirm an appointment |
 | `SHEET_ID` | *(only if the script is not attached to the sheet)* | The id from your sheet's URL |
 
+> **Where the booking alerts go.** `OWNER_EMAIL` is the inbox that receives *"New appointment — …"* every time someone books. Two things worth knowing:
+>
+> - **The script property wins over the address written in `Code.gs`.** If you set it here, this is the one that is used — and changing it here takes effect **immediately, with no republish**. Run the function **`diagnose`** to see which address is actually in force.
+> - **It can hold more than one address**, separated by commas — e.g. `karenrborlongan@gmail.com, otherinbox@gmail.com` — and every address receives the alert. The customer's own acknowledgement is a separate email, and it always goes to the address they typed in the form.
+>
+> Hitting **Reply** on a booking alert answers the client directly (the alert carries their address as Reply-To).
+
 > Your deployed Web App URL is already wired into `index.html`, `login.html` and `admin.html`:
 > `…/AKfycbxYavQPq4nWIqgHaGTKi99ZCqkGOn6OeYmu_Vccbm8rq9DS-astSch5yb_ZmQ5PmOJIRA/exec`
 > When you edit `Code.gs`, remember to publish it: **Deploy → Manage deployments → pencil → Version: New version → Deploy**.

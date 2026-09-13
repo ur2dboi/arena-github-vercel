@@ -329,8 +329,17 @@ function book_(b) {
   }
 }
 
+/* OWNER_EMAIL may hold one address or several — "shop@x.com, karen@y.com" —
+   so a booking alert can land in more than one inbox at once. */
+function ownerEmails_() {
+  var raw = String(prop_('OWNER_EMAIL') || Session.getEffectiveUser().getEmail() || '');
+  return raw.split(',').map(function (s) { return String(s).trim(); })
+            .filter(function (s) { return s; });
+}
+
 function notify_(id, b, pax) {
-  var owner = prop_('OWNER_EMAIL') || Session.getEffectiveUser().getEmail();
+  var owners = ownerEmails_();
+  var owner = owners[0] || Session.getEffectiveUser().getEmail();
   var nice = nice_(ymd_(b.date));
     var at = slot_(b.time);
     var tel = phoneText_(b.phone);
@@ -338,7 +347,7 @@ function notify_(id, b, pax) {
     /* Hitting Reply in this email answers the client, not the script's own
        account, so the shop can confirm an appointment straight from the alert. */
     MailApp.sendEmail({
-      to: owner,
+      to: owners.join(','),
       subject: 'New appointment — ' + nice + ', ' + at + ' (' + b.name + ')',
       name: 'Huxley Jewelry Creations website',
       replyTo: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(b.email || '')) ? String(b.email) : owner,

@@ -259,6 +259,20 @@ check('replying to the shop alert answers the client',
 check('the shop alert is named after the website',
   /Huxley Jewelry Creations/.test(mailSent[0].name || ''), String(mailSent[0].name));
 
+/* a booking can alert more than one inbox at once */
+(function () {
+  const saved = scriptProps.OWNER_EMAIL;
+  scriptProps.OWNER_EMAIL = 'karenrborlongan@gmail.com, shop@example.com';
+  mailSent = [];
+  const r2 = post({ action: 'book', date: d(5), time: '4:00 PM', name: 'Two Inbox', phone: '09171234568', email: 'two@example.com', pax: 1, agree: true });
+  check('a booking still succeeds with two owner addresses', r2.ok === true, r2.error || r2.id);
+  check('both addresses receive the alert',
+    mailSent[0] && mailSent[0].to === 'karenrborlongan@gmail.com,shop@example.com', String(mailSent[0] && mailSent[0].to));
+  check('the client is still acknowledged', mailSent[1] && mailSent[1].to === 'two@example.com', String(mailSent[1] && mailSent[1].to));
+  if (r2.ok) post(auth({ op: 'delete', id: r2.id }));
+  if (saved === undefined) delete scriptProps.OWNER_EMAIL; else scriptProps.OWNER_EMAIL = saved;
+})();
+
 r = post({ action: 'book', date: d(3), time: '2:00 PM', name: 'Ben Cruz', phone: '0917', email: 'b@e.com', pax: 1, agree: true });
 check('the same slot cannot be booked twice', r.ok === false && r.taken === true, r.error);
 
