@@ -92,7 +92,10 @@ function setup() {
   log_('setup', 'Ready');
   return 'Setup complete on spreadsheet: ' + (ss.getName ? '"' + ss.getName() + '"' : ss.getId()) + '\n\n' +
     'Admin username: ' + (prop_('ADMIN_USER') || DEFAULT_USER) + '\n' +
-    'Admin password: ' + (prop_('ADMIN_PASSWORD') ? 'set in Script properties' : 'NOT SET — add ADMIN_PASSWORD in Project Settings ▸ Script properties') + '\n\n' +
+    'Admin password: ' + (prop_('ADMIN_PASSWORD') ? 'set' :
+        'NOT SET — you cannot log in until you add ADMIN_PASSWORD. Use Project Settings ▸ ' +
+        'Script properties (takes effect immediately, no redeploy) or the CONFIG block above.') + '\n' +
+      'Spreadsheet found: ' + (prop_('SHEET_ID') ? 'by SHEET_ID' : 'by name ("' + (prop_('SHEET_NAME') || 'Huxley Bookings') + '")') + '\n\n' +
     'Now: Deploy ▸ New deployment ▸ Web app.';
 }
 
@@ -312,7 +315,7 @@ function book_(b) {
 
     var id = 'HX-' + Utilities.formatDate(new Date(), TZ, 'yyMMdd') + '-' +
              Math.random().toString(36).slice(2, 6).toUpperCase();
-    ss_().getSheetByName(SHEET_APPTS).appendRow(
+    sheet_(SHEET_APPTS).appendRow(
       [id, new Date(), b.date, b.time, b.name, b.phone, b.email, pax, b.notes || '', 'Pending', 'Unpaid', '', '']);
     log_('website', 'New booking ' + id);
     notify_(id, b, pax);
@@ -354,7 +357,8 @@ function admin_(b) {
   var user = String(b.user || '').trim();
 
   if (!prop_('ADMIN_PASSWORD') && !prop_('ADMIN_HASH')) {
-    return { ok: false, error: 'No admin password is set yet. Add ADMIN_PASSWORD in Apps Script ▸ Project Settings ▸ Script properties.' };
+    return { ok: false, error: 'No admin password is set yet. Add ADMIN_PASSWORD in Project Settings ▸ Script properties ' +
+      '(it takes effect straight away, no redeploy) — or type it into the CONFIG block at the top of this file.' };
   }
   if (!verify_(user, String(b.password || ''))) {
     Utilities.sleep(1200);                       // slow down guessing
@@ -450,7 +454,7 @@ function rowOf_(id) {
 }
 
 function setStatus_(id, status) {
-  var sh = ss_().getSheetByName(SHEET_APPTS);
+  var sh = sheet_(SHEET_APPTS);
   var row = rowOf_(id);
   if (row < 0) return { ok: false, error: 'Not found' };
   sh.getRange(row, 10).setValue(status);
@@ -477,7 +481,7 @@ function setStatus_(id, status) {
 function setFee_(id, fee) {
   var row = rowOf_(id);
   if (row < 0) return { ok: false, error: 'Not found' };
-  ss_().getSheetByName(SHEET_APPTS).getRange(row, 11).setValue(fee);
+  sheet_(SHEET_APPTS).getRange(row, 11).setValue(fee);
   log_('admin', 'Fee ' + id + ' → ' + fee);
   return { ok: true, appointments: list_(), stats: stats_() };
 }
@@ -485,20 +489,20 @@ function setFee_(id, fee) {
 function setShopNote_(id, note) {
   var row = rowOf_(id);
   if (row < 0) return { ok: false, error: 'Not found' };
-  ss_().getSheetByName(SHEET_APPTS).getRange(row, 13).setValue(note || '');
+  sheet_(SHEET_APPTS).getRange(row, 13).setValue(note || '');
   return { ok: true, appointments: list_() };
 }
 
 function del_(id) {
   var row = rowOf_(id);
   if (row < 0) return { ok: false, error: 'Not found' };
-  ss_().getSheetByName(SHEET_APPTS).deleteRow(row);
+  sheet_(SHEET_APPTS).deleteRow(row);
   log_('admin', 'Deleted ' + id);
   return { ok: true, appointments: list_(), stats: stats_() };
 }
 
 function block_(date, time, reason) {
-  var sh = ss_().getSheetByName(SHEET_BLOCK);
+  var sh = sheet_(SHEET_BLOCK);
   each_(ss_(), SHEET_BLOCK, function (r, i) {
     if (r[0] === date && (r[1] || 'ALL') === time) sh.deleteRow(i);
   });
@@ -508,7 +512,7 @@ function block_(date, time, reason) {
 }
 
 function unblock_(date, time) {
-  var sh = ss_().getSheetByName(SHEET_BLOCK);
+  var sh = sheet_(SHEET_BLOCK);
   var removed = 0;
   for (var i = sh.getLastRow(); i >= 2; i--) {
     var r = sh.getRange(i, 1, 1, 3).getValues()[0];
@@ -593,7 +597,7 @@ function resetPhoto_(b) {
   if (PHOTO_SLOTS.indexOf(slot) < 0) return { ok: false, error: 'Unknown photo slot: ' + slot };
   var previous = photos_()[slot];
   if (previous && previous.id) { try { DriveApp.getFileById(previous.id).setTrashed(true); } catch (e) {} }
-  var sh = ss_().getSheetByName(SHEET_PHOTOS);
+  var sh = sheet_(SHEET_PHOTOS);
   for (var i = sh.getLastRow(); i >= 2; i--) {
     if (sh.getRange(i, 1).getValue() === slot) sh.deleteRow(i);
   }
@@ -602,7 +606,7 @@ function resetPhoto_(b) {
 }
 
 function store_(slot, id, url) {
-  var sh = ss_().getSheetByName(SHEET_PHOTOS);
+  var sh = sheet_(SHEET_PHOTOS);
   for (var i = sh.getLastRow(); i >= 2; i--) {
     if (sh.getRange(i, 1).getValue() === slot) sh.deleteRow(i);
   }
@@ -612,6 +616,15 @@ function store_(slot, id, url) {
 /* ============================================================
    HELPERS
    ============================================================ */
+function sheet_(name) {
+  var ss = ss_();
+  var sh = ss.getSheetByName(name);
+  if (sh) return sh;
+  throw new Error('The spreadsheet "' + ss.getName() + '" has no "' + name + '" tab yet, so the ' +
+    'backend has nothing to write to. Fix it in 10 seconds: in this project, choose the function ' +
+    'setup in the toolbar dropdown and press Run once. That creates every tab and the photo folder.');
+}
+
 function prop_(k) {
   var set = PropertiesService.getScriptProperties().getProperty(k);
   if (set) return set;
@@ -633,7 +646,7 @@ function each_(ss, name, fn) {
 
 function log_(who, what) {
   try {
-    var sh = ss_().getSheetByName(SHEET_LOG);
+    var sh = sheet_(SHEET_LOG);
     if (sh) sh.appendRow([new Date(), who, what, '']);
   } catch (e) {}
 }

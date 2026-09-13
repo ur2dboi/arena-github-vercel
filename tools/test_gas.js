@@ -349,11 +349,29 @@ ENV.bound = true;
 r = json(run('doGet', { parameter: { action: 'availability' } }));
 check('bound script still works', r.ok === true, r.error);
 
+/* a missing tab must explain itself instead of throwing a raw TypeError */
+(function () {
+  const saved = SHEETS['Appointments'];
+  delete SHEETS['Appointments'];                 // as if setup() had never been run
+  try {
+    run('sheet_', 'Appointments');
+    check('a missing tab is reported clearly', false, 'no error thrown');
+  } catch (e) {
+    const msg = String(e.message || e);
+    check('a missing tab says to run setup()', /setup/.test(msg) && /press Run|Run once|dropdown/i.test(msg), msg.slice(0, 60) + '…');
+    check('a missing tab names the tab', /Appointments/.test(msg));
+  }
+  SHEETS['Appointments'] = saved;
+  check('normal operation resumes after the guard', run('sheet_', 'Appointments') === saved);
+})();
+
 /* ================= report ================= */
 console.log('\nPASS (' + ok.length + ')');
 ok.forEach(t => console.log('  ✓ ' + t));
 if (fail.length) {
   console.log('\nFAIL (' + fail.length + ')');
-  fail.forEach(t => console.log('  ✗ ' + t));
+  fail.forEach(t => 
+
+console.log('  ✗ ' + t));
 }
 process.exit(fail.length ? 1 : 0);
