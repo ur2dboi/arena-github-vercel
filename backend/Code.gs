@@ -1,54 +1,81 @@
 /**
  * ============================================================
- *  HUXLEY JEWELRY CREATIONS — Booking backend
- *  Database  : Google Sheets (this spreadsheet)
- *  API       : Apps Script Web App
- *  Admin     : admin.html on your website
- *  Cost      : ₱0 — consumer Apps Script quota is 90 min/day of
- *              script runtime and 20,000 UrlFetch calls/day.
- *  No credit card. Never auto-pauses.
+ *  HUXLEY JEWELRY CREATIONS — booking + content backend
+ *  Database : Google Sheets (this spreadsheet)
+ *  Photos   : Google Drive  (served straight to the website)
+ *  API      : Apps Script Web App
+ *  Admin    : admin.html on your website
+ *  Cost     : ₱0 — no credit card, never auto-pauses.
  * ============================================================
  *
  *  FIRST-TIME SETUP
- *  1. Create a Google Sheet named "Huxley Bookings".
- *  2. Extensions ▸ Apps Script ▸ paste this whole file into Code.gs
- *  3. Run ▸ setup()  (approve the permissions prompt) — creates the tabs.
- *  4. Set your admin password (one time, in the editor):
- *        File ▸ Project Settings ▸ Script properties ▸ Add property
- *        Property: ADMIN_PASSWORD     Value: (your password)
- *        Optional: OWNER_EMAIL  ->  huxleyjewelrycreations@gmail.com
- *  5. Deploy ▸ New deployment ▸ type "Web app"
- *        Execute as: Me
- *        Who has access: Anyone
- *     Copy the /exec URL and paste it into index.html and admin.html.
+ *  1. Google Sheet "Huxley Bookings" → Extensions ▸ Apps Script ▸ paste this file.
+ *  2. Run ▸ setup()   (approve the permissions prompt)
+ *  3. Project Settings ▸ Script properties ▸ add:
+ *        ADMIN_USER      <your admin username>
+ *        ADMIN_PASSWORD  <your admin password>
+ *        OWNER_EMAIL     huxleyjewelrycreations@gmail.com
+ *        OWNER_PHONE     0976 463 7003
+ *        SHOP_MAPS       <your Google Maps link>
+ *     IMPORTANT: type the credentials only in Script properties. Never paste
+ *     them into Code.gs or admin.html — this repository is public, and anything
+ *     in a website file can be read with Ctrl+U. Once you sign in, the password
+ *     is stored salted + hashed and the plaintext property is deleted.
+ *  4. Deploy ▸ New deployment ▸ Web app ▸ Execute as: Me ▸ Access: Anyone
+ *     Copy the /exec URL into index.html (apiUrl) and admin.html (DEFAULT_URL).
+ *
+ *  CHANGING THE PASSWORD: sign in to admin.html ▸ Settings.
+ *  It is stored salted and hashed (SHA-256); your plain password is deleted.
  * ============================================================
  */
 
-var TZ          = Session.getScriptTimeZone();
-var SHEET_APPTS = 'Appointments';
-var SHEET_BLOCK = 'Blocks';
-var SHEET_LOG   = 'Activity log';
+var TZ            = Session.getScriptTimeZone();
+var SHEET_APPTS   = 'Appointments';
+var SHEET_BLOCK   = 'Blocks';
+var SHEET_LOG     = 'Activity log';
+var SHEET_PHOTOS  = 'Photos';
+var DRIVE_FOLDER  = 'Huxley Website Photos';
 
 var HEADERS = ['ID','Submitted','Date','Time','Client name','Contact number','Email','Person/s',
                'Purpose / notes','Status','Reservation fee','Confirmed at','Notes from shop'];
-var BLOCK_HEADERS = ['Date','Time','Reason','Added'];
-var LOG_HEADERS   = ['When','By','Action','Details'];
+var BLOCK_HEADERS  = ['Date','Time','Reason','Added'];
+var LOG_HEADERS    = ['When','By','Action','Details'];
+var PHOTO_HEADERS  = ['Slot','Drive file ID','URL','Updated'];
 
 var SLOTS = ['12:00 NN','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM'];
+
+/* the photo slots the website understands — keep in step with index.html */
+var PHOTO_SLOTS = ['hero','rings','college','pendant','earrings','bangles','bracelets','chains','workshop'];
+var MAX_PHOTO_BYTES = 6 * 1024 * 1024;      // 6 MB, after the browser has resized it
+
+var DEFAULT_USER = 'adminhuxley';
 
 /* ============================================================
    SETUP
    ============================================================ */
 function setup() {
   var ss = SpreadsheetApp.getActive();
+  ss.setSpreadsheetTimeZone(TZ);
   var a = tab(ss, SHEET_APPTS, HEADERS);
   var b = tab(ss, SHEET_BLOCK, BLOCK_HEADERS);
-  var l = tab(ss, SHEET_LOG, LOG_HEADERS);
-  // keep the date/time columns as plain text so Sheets never reformats them
+  tab(ss, SHEET_LOG, LOG_HEADERS);
+  tab(ss, SHEET_PHOTOS, PHOTO_HEADERS);
   ['C','D'].forEach(function (c) { a.getRange(c + '2:' + c + '1000').setNumberFormat('@'); });
   ['A','B'].forEach(function (c) { b.getRange(c + '2:' + c + '1000').setNumberFormat('@'); });
-  log_('setup', 'Sheets ready');
-  return 'Setup complete. Now set ADMIN_PASSWORD in Project Settings ▸ Script properties, then Deploy as a Web app.';
+
+  // make the Drive folder for website photos, and remember it
+  if (!prop_('PHOTO_FOLDER')) {
+    var it = DriveApp.getFoldersByName(DRIVE_FOLDER);
+    var f = it.hasNext() ? it.next() : DriveApp.createFolder(DRIVE_FOLDER);
+    setProp_('PHOTO_FOLDER', f.getId());
+  }
+  if (!prop_('ADMIN_USER')) setProp_('ADMIN_USER', DEFAULT_USER);
+
+  log_('setup', 'Ready');
+  return 'Setup complete.\n\n' +
+    'Admin username: ' + (prop_('ADMIN_USER') || DEFAULT_USER) + '\n' +
+    'Admin password: ' + (prop_('ADMIN_PASSWORD') ? 'set in Script properties' : 'NOT SET — add ADMIN_PASSWORD in Project Settings ▸ Script properties') + '\n\n' +
+    'Now: Deploy ▸ New deployment ▸ Web app.';
 }
 
 function tab(ss, name, headers) {
@@ -68,8 +95,9 @@ function doGet(e) {
   var p = (e && e.parameter) || {};
   try {
     if (p.action === 'availability') return json_(availability());
+    if (p.action === 'photos')       return json_({ ok: true, photos: photosPublic_() });
     if (p.action === 'ping')         return json_({ ok: true, when: new Date().toISOString() });
-    return json_({ ok: true, service: 'Huxley Jewelry Creations booking API' });
+    return json_({ ok: true, service: 'Huxley Jewelry Creations backend' });
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }
@@ -93,24 +121,62 @@ function json_(obj) {
 }
 
 /* ============================================================
-   AVAILABILITY  (public — no personal data is ever exposed)
+   CREDENTIALS — salted SHA-256, stored in Script properties only
+   ============================================================ */
+function hex_(bytes) {
+  var out = '';
+  for (var i = 0; i < bytes.length; i++) {
+    var b = (bytes[i] < 0 ? bytes[i] + 256 : bytes[i]).toString(16);
+    out += (b.length === 1 ? '0' : '') + b;
+  }
+  return out;
+}
+
+function hash_(salt, user, pass) {
+  return hex_(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256,
+    salt + '|' + String(user).toLowerCase() + '|' + pass, Utilities.Charset.UTF_8));
+}
+
+function saveCreds_(user, pass) {
+  var salt = Utilities.getUuid() + Utilities.getUuid();
+  setProp_('ADMIN_SALT', salt);
+  setProp_('ADMIN_HASH', hash_(salt, user, pass));
+  setProp_('ADMIN_USER', user);
+  // the plain password is no longer needed once it is hashed
+  var props = PropertiesService.getScriptProperties();
+  if (props.getProperty('ADMIN_PASSWORD')) props.deleteProperty('ADMIN_PASSWORD');
+}
+
+function verify_(user, pass) {
+  if (!user || !pass) return false;
+  var expectUser = prop_('ADMIN_USER') || DEFAULT_USER;
+  if (String(user).trim().toLowerCase() !== String(expectUser).toLowerCase()) return false;
+
+  var salt = prop_('ADMIN_SALT'), stored = prop_('ADMIN_HASH');
+  if (salt && stored) return hash_(salt, expectUser, pass) === stored;
+
+  // first run: compare against the plain property, then upgrade to a hash
+  var plain = prop_('ADMIN_PASSWORD');
+  if (!plain) return false;
+  if (pass === plain) { saveCreds_(expectUser, pass); log_('system', 'Password upgraded to hashed storage'); return true; }
+  return false;
+}
+
+/* ============================================================
+   AVAILABILITY  (public)
    ============================================================ */
 function availability() {
   var ss = SpreadsheetApp.getActive();
-  var booked = {};
-  var closed = [];
+  var booked = {}, closed = [];
 
-  // confirmed / pending appointments occupy their slot
   each_(ss, SHEET_APPTS, function (r) {
-    var status = String(r[9] || 'Pending');
-    if (status === 'Cancelled') return;
+    if (String(r[9] || 'Pending') === 'Cancelled') return;
     var d = r[2], t = r[3];
     if (!d || !t) return;
     booked[d] = booked[d] || [];
     if (booked[d].indexOf(t) < 0) booked[d].push(t);
   });
 
-  // manual blocks: Time = 'ALL' closes the whole day
   each_(ss, SHEET_BLOCK, function (r) {
     var d = r[0], t = r[1] || 'ALL';
     if (!d) return;
@@ -123,15 +189,15 @@ function availability() {
 }
 
 /* ============================================================
-   BOOKING  (public — called by the website form)
+   BOOKING  (public)
    ============================================================ */
 function book_(b) {
   var need = ['date','time','name','phone','email'];
   for (var i = 0; i < need.length; i++) {
     if (!b[need[i]]) return { ok: false, error: 'Missing ' + need[i] };
   }
-  if (SLOTS.indexOf(b.time) < 0)        return { ok: false, error: 'Unknown time slot' };
-  if (b.agree !== true)                 return { ok: false, error: 'Policy not accepted' };
+  if (SLOTS.indexOf(b.time) < 0)          return { ok: false, error: 'Unknown time slot' };
+  if (b.agree !== true)                   return { ok: false, error: 'Policy not accepted' };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(b.date)) return { ok: false, error: 'Bad date' };
 
   var pax = Math.min(3, Math.max(1, parseInt(b.pax, 10) || 1));
@@ -139,18 +205,15 @@ function book_(b) {
   try { lock.waitLock(20000); } catch (err) { return { ok: false, error: 'Busy, please try again' }; }
 
   try {
-    // re-check under the lock so two people cannot take the same slot
     var av = availability();
-    if (av.closed.indexOf(b.date) >= 0)            return { ok: false, error: 'That day is closed' };
-    if ((av.booked[b.date] || []).indexOf(b.time) >= 0) return { ok: false, error: 'Slot just taken', taken: true };
+    if (av.closed.indexOf(b.date) >= 0)                  return { ok: false, error: 'That day is closed' };
+    if ((av.booked[b.date] || []).indexOf(b.time) >= 0)  return { ok: false, error: 'Slot just taken', taken: true };
 
     var id = 'HX-' + Utilities.formatDate(new Date(), TZ, 'yyMMdd') + '-' +
              Math.random().toString(36).slice(2, 6).toUpperCase();
-    var row = [id, new Date(), b.date, b.time, b.name, b.phone, b.email, pax,
-               b.notes || '', 'Pending', 'Unpaid', '', ''];
-    SpreadsheetApp.getActive().getSheetByName(SHEET_APPTS).appendRow(row);
+    SpreadsheetApp.getActive().getSheetByName(SHEET_APPTS).appendRow(
+      [id, new Date(), b.date, b.time, b.name, b.phone, b.email, pax, b.notes || '', 'Pending', 'Unpaid', '', '']);
     log_('website', 'New booking ' + id);
-
     notify_(id, b, pax);
     return { ok: true, id: id };
   } finally {
@@ -160,74 +223,93 @@ function book_(b) {
 
 function notify_(id, b, pax) {
   var owner = prop_('OWNER_EMAIL') || Session.getEffectiveUser().getEmail();
-  var niceDate = nice_(b.date);
-  var lines = [
-    'Reference:   ' + id,
-    'Date:        ' + niceDate,
-    'Time:        ' + b.time,
-    'Client:      ' + b.name,
-    'Contact:     ' + b.phone,
-    'Email:       ' + b.email,
-    'Person/s:    ' + pax + ' (max 3)',
-    '',
-    'Purpose / notes:',
-    b.notes || '—',
-    '',
-    'Policy acknowledged, ₱1,000 reservation fee understood.',
-    '',
-    'Manage this appointment in your admin portal.'
-  ].join('\n');
+  var nice = nice_(b.date);
+  try {
+    MailApp.sendEmail(owner, 'New appointment — ' + nice + ', ' + b.time + ' (' + b.name + ')', [
+      'Reference:   ' + id, 'Date:        ' + nice, 'Time:        ' + b.time,
+      'Client:      ' + b.name, 'Contact:     ' + b.phone, 'Email:       ' + b.email,
+      'Person/s:    ' + pax + ' (max 3)', '', 'Purpose / notes:', b.notes || '—', '',
+      'Policy acknowledged, ₱1,000 reservation fee understood.', '',
+      'Manage this appointment in your admin portal.'
+    ].join('\n'));
+  } catch (e) {}
 
-  try { MailApp.sendEmail(owner, 'New appointment — ' + niceDate + ', ' + b.time + ' (' + b.name + ')', lines); } catch (e) {}
-
-  var guest = [
-    'Hi ' + String(b.name).split(' ')[0] + ',',
-    '',
-    'Thank you for booking with Huxley Jewelry Creations. We have received your appointment request:',
-    '',
-    'Reference:   ' + id,
-    'Date:        ' + niceDate,
-    'Time:        ' + b.time,
-    'Person/s:    ' + pax,
-    '',
-    'We will reply to confirm your slot. Your Google Maps location will be provided together with your appointment confirmation.',
-    '',
-    'Reminder: a ₱1,000 reservation fee secures your appointment and is fully deducted from the total cost of your customized wedding ring should you proceed with the order. The fee is non-refundable for cancellation, rescheduling, non-appearance, or change of mind.',
-    '',
-    'Maraming salamat!',
-    'Huxley Jewelry Creations',
-    prop_('OWNER_PHONE') || '0976 463 7003'
-  ].join('\n');
-
-  try { MailApp.sendEmail(b.email, 'We received your appointment request — Huxley Jewelry Creations', guest); } catch (e) {}
+  try {
+    MailApp.sendEmail(b.email, 'We received your appointment request — Huxley Jewelry Creations', [
+      'Hi ' + String(b.name).split(' ')[0] + ',', '',
+      'Thank you for booking with Huxley Jewelry Creations. We have received your appointment request:', '',
+      'Reference:   ' + id, 'Date:        ' + nice, 'Time:        ' + b.time, 'Person/s:    ' + pax, '',
+      'We will reply to confirm your slot. Your Google Maps location will be provided together with your appointment confirmation.', '',
+      'Reminder: a ₱1,000 reservation fee secures your appointment and is fully deducted from the total cost of your customized wedding ring should you proceed with the order. The fee is non-refundable for cancellation, rescheduling, non-appearance, or change of mind.', '',
+      'Maraming salamat!', 'Huxley Jewelry Creations', prop_('OWNER_PHONE') || '0976 463 7003'
+    ].join('\n'));
+  } catch (e) {}
 }
 
 /* ============================================================
-   ADMIN API  (password protected, sent from admin.html)
+   ADMIN API
    ============================================================ */
 function admin_(b) {
-  var pass = prop_('ADMIN_PASSWORD');
-  if (!pass)                    return { ok: false, error: 'ADMIN_PASSWORD is not set in Script properties yet.' };
-  if (String(b.password || '') !== pass) return { ok: false, error: 'Wrong password' };
+  var user = String(b.user || '').trim();
+
+  if (!prop_('ADMIN_PASSWORD') && !prop_('ADMIN_HASH')) {
+    return { ok: false, error: 'No admin password is set yet. Add ADMIN_PASSWORD in Apps Script ▸ Project Settings ▸ Script properties.' };
+  }
+  if (!verify_(user, String(b.password || ''))) {
+    Utilities.sleep(1200);                       // slow down guessing
+    log_('security', 'Failed sign-in for "' + user + '"');
+    return { ok: false, error: 'Wrong username or password' };
+  }
 
   switch (b.op) {
-    case 'list':      return { ok: true, appointments: list_(), blocks: blocks_(), stats: stats_() };
+    case 'list':      return { ok: true, appointments: list_(), blocks: blocks_(), stats: stats_(), photos: photos_(), user: prop_('ADMIN_USER') || DEFAULT_USER };
     case 'status':    return setStatus_(b.id, b.status);
     case 'fee':       return setFee_(b.id, b.fee);
     case 'shopNote':  return setShopNote_(b.id, b.note);
     case 'block':     return block_(b.date, b.time || 'ALL', b.reason || '');
     case 'unblock':   return unblock_(b.date, b.time || 'ALL');
     case 'delete':    return del_(b.id);
-    case 'closeDay':  return block_(b.date, 'ALL', b.reason || 'Day off');
+    case 'changePass':return changePass_(b);
+    case 'savePhoto': return savePhoto_(b);
+    case 'setPhotoUrl': return setPhotoUrl_(b);
+    case 'resetPhoto':return resetPhoto_(b);
     default:          return { ok: false, error: 'Unknown operation' };
   }
 }
 
+/* ---------- change username / password ---------- */
+function changePass_(b) {
+  var cur = prop_('ADMIN_USER') || DEFAULT_USER;
+  var newUser = String(b.newUser || '').trim() || cur;
+  var newPass = String(b.newPassword || '');
+
+  if (!/^[A-Za-z0-9_.@-]{4,40}$/.test(newUser)) {
+    return { ok: false, error: 'Username must be 4–40 characters: letters, numbers, . _ - @ only.' };
+  }
+  if (b.newPassword && newPass.length < 6) {
+    return { ok: false, error: 'New password must be at least 6 characters.' };
+  }
+  if (newPass && newPass !== String(b.confirmPassword || '')) {
+    return { ok: false, error: 'The two new passwords do not match.' };
+  }
+  if (newUser === cur && !newPass) {
+    return { ok: false, error: 'Nothing to change.' };
+  }
+
+  saveCreds_(newUser, newPass || b.password);
+  log_('admin', 'Login updated (username "' + newUser + '", password ' + (newPass ? 'changed' : 'unchanged') + ')');
+  return { ok: true, user: newUser, message: 'Saved. Use your new details the next time you sign in.' };
+}
+
+/* ============================================================
+   APPOINTMENTS
+   ============================================================ */
 function list_() {
   var out = [];
   each_(SpreadsheetApp.getActive(), SHEET_APPTS, function (r, i) {
     out.push({
-      row: i, id: r[0], submitted: r[1] ? Utilities.formatDate(new Date(r[1]), TZ, 'yyyy-MM-dd HH:mm') : '',
+      row: i, id: r[0],
+      submitted: r[1] ? Utilities.formatDate(new Date(r[1]), TZ, 'yyyy-MM-dd HH:mm') : '',
       date: r[2], time: r[3], name: r[4], phone: r[5], email: r[6], pax: r[7],
       notes: r[8], status: r[9] || 'Pending', fee: r[10] || 'Unpaid',
       confirmedAt: r[11] ? Utilities.formatDate(new Date(r[11]), TZ, 'yyyy-MM-dd HH:mm') : '',
@@ -282,7 +364,7 @@ function setStatus_(id, status) {
         'Date:       ' + nice_(r[2]) + '\n' +
         'Time:       ' + r[3] + '\n' +
         'Person/s:   ' + r[7] + '\n\n' +
-        '📍 Google Maps location: ' + (prop_('SHOP_MAPS') || '(paste your Google Maps link in Script properties as SHOP_MAPS)') + '\n\n' +
+        '📍 Google Maps location: ' + (prop_('SHOP_MAPS') || '(add SHOP_MAPS in Script properties)') + '\n\n' +
         'Please arrive on time — your slot is reserved exclusively for you.\n\n' +
         'See you soon,\nHuxley Jewelry Creations');
     } catch (e) {}
@@ -327,9 +409,7 @@ function block_(date, time, reason) {
 function unblock_(date, time) {
   var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_BLOCK);
   var removed = 0;
-  // walk backwards so deleting rows does not shift the ones still to check
-  var last = sh.getLastRow();
-  for (var i = last; i >= 2; i--) {
+  for (var i = sh.getLastRow(); i >= 2; i--) {
     var r = sh.getRange(i, 1, 1, 3).getValues()[0];
     if (r[0] === date && (r[1] || 'ALL') === time) { sh.deleteRow(i); removed++; }
   }
@@ -338,9 +418,101 @@ function unblock_(date, time) {
 }
 
 /* ============================================================
+   WEBSITE PHOTOS
+   ============================================================ */
+function photos_() {
+  var out = {};
+  each_(SpreadsheetApp.getActive(), SHEET_PHOTOS, function (r) {
+    if (!r[0]) return;
+    out[r[0]] = { id: r[1] || '', url: r[2] || '', updated: r[3] ? String(r[3]) : '' };
+  });
+  return out;
+}
+
+/** only the public URLs — no Drive file ids, nothing private */
+function photosPublic_() {
+  var all = photos_(), pub = {};
+  for (var k in all) {
+    if (all[k].url) pub[k] = all[k].url;
+  }
+  return pub;
+}
+
+function folder_() {
+  var id = prop_('PHOTO_FOLDER');
+  if (id) { try { return DriveApp.getFolderById(id); } catch (e) {} }
+  var it = DriveApp.getFoldersByName(DRIVE_FOLDER);
+  var f = it.hasNext() ? it.next() : DriveApp.createFolder(DRIVE_FOLDER);
+  setProp_('PHOTO_FOLDER', f.getId());
+  return f;
+}
+
+function savePhoto_(b) {
+  var slot = String(b.slot || '');
+  if (PHOTO_SLOTS.indexOf(slot) < 0) return { ok: false, error: 'Unknown photo slot: ' + slot };
+
+  var dataUrl = String(b.dataUrl || '');
+  var m = dataUrl.match(/^data:(image\/[a-z+]+);base64,(.+)$/i);
+  if (!m) return { ok: false, error: 'That file could not be read as an image. Try a JPG or PNG.' };
+
+  var bytes = Utilities.base64Decode(m[2]);
+  if (bytes.length > MAX_PHOTO_BYTES) {
+    return { ok: false, error: 'That image is ' + Math.round(bytes.length / 1048576) + ' MB — please use one under 6 MB.' };
+  }
+
+  var ext = m[1].indexOf('png') >= 0 ? 'png' : 'jpg';
+  var name = 'huxley-' + slot + '-' + Utilities.formatDate(new Date(), TZ, 'yyyyMMdd-HHmmss') + '.' + ext;
+
+  var file = folder_().createFile(Utilities.newBlob(bytes, m[1], name));
+  try { file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) {}
+
+  var url = 'https://lh3.googleusercontent.com/d/' + file.getId();
+  var previous = photos_()[slot];
+  if (previous && previous.id) { try { DriveApp.getFileById(previous.id).setTrashed(true); } catch (e) {} }
+
+  store_(slot, file.getId(), url);
+  log_('admin', 'Photo updated: ' + slot);
+  return { ok: true, photos: photos_(), slot: slot, url: url, message: 'Photo updated. Refresh the website to see it.' };
+}
+
+function setPhotoUrl_(b) {
+  var slot = String(b.slot || '');
+  if (PHOTO_SLOTS.indexOf(slot) < 0) return { ok: false, error: 'Unknown photo slot: ' + slot };
+  var url = String(b.url || '').trim();
+  if (url && !/^https:\/\//i.test(url)) return { ok: false, error: 'Please paste a link that starts with https://' };
+  var previous = photos_()[slot];
+  if (!url && previous && previous.id) { try { DriveApp.getFileById(previous.id).setTrashed(true); } catch (e) {} }
+  store_(slot, url ? (previous ? previous.id : '') : '', url);
+  log_('admin', 'Photo link set: ' + slot);
+  return { ok: true, photos: photos_(), slot: slot, message: url ? 'Photo link saved.' : 'Photo reset to the original.' };
+}
+
+function resetPhoto_(b) {
+  var slot = String(b.slot || '');
+  if (PHOTO_SLOTS.indexOf(slot) < 0) return { ok: false, error: 'Unknown photo slot: ' + slot };
+  var previous = photos_()[slot];
+  if (previous && previous.id) { try { DriveApp.getFileById(previous.id).setTrashed(true); } catch (e) {} }
+  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_PHOTOS);
+  for (var i = sh.getLastRow(); i >= 2; i--) {
+    if (sh.getRange(i, 1).getValue() === slot) sh.deleteRow(i);
+  }
+  log_('admin', 'Photo reset: ' + slot);
+  return { ok: true, photos: photos_(), slot: slot, message: 'Original photo restored.' };
+}
+
+function store_(slot, id, url) {
+  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_PHOTOS);
+  for (var i = sh.getLastRow(); i >= 2; i--) {
+    if (sh.getRange(i, 1).getValue() === slot) sh.deleteRow(i);
+  }
+  sh.appendRow([slot, id || '', url || '', new Date()]);
+}
+
+/* ============================================================
    HELPERS
    ============================================================ */
 function prop_(k) { return PropertiesService.getScriptProperties().getProperty(k); }
+function setProp_(k, v) { PropertiesService.getScriptProperties().setProperty(k, v); }
 
 function each_(ss, name, fn) {
   var sh = ss.getSheetByName(name);
@@ -365,8 +537,11 @@ function nice_(iso) {
   return Utilities.formatDate(d, TZ, 'EEEE, d MMMM yyyy');
 }
 
-/** Run this once to test that everything is wired up. */
+/** Test helper — run once from the editor to check everything is wired up. */
 function test() {
-  Logger.log(JSON.stringify(availability(), null, 2));
+  Logger.log('availability: ' + JSON.stringify(availability()).slice(0, 200));
+  Logger.log('photos: ' + JSON.stringify(photosPublic_()));
+  Logger.log('admin user: ' + (prop_('ADMIN_USER') || DEFAULT_USER));
+  Logger.log('password set: ' + !!(prop_('ADMIN_PASSWORD') || prop_('ADMIN_HASH')));
   Logger.log(setup());
 }

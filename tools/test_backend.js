@@ -159,8 +159,8 @@ async function testAdmin() {
         const body = JSON.parse(opts.body);
         lastOp = body.op;
         if (failNext) { failNext = false; return { ok: true, status: 200, json: async () => ({ ok: false, error: 'Wrong password' }) }; }
-        if (body.password !== 'secret123') return { ok: true, status: 200, json: async () => ({ ok: false, error: 'Wrong password' }) };
-        if (body.op === 'list') return { ok: true, status: 200, json: async () => ({ ok: true, appointments: rows, blocks: [{ date: ymd(day(9)), time: 'ALL', reason: 'Holiday' }], stats }) };
+        if (body.password !== 'secret123' || body.user !== 'adminhuxley') return { ok: true, status: 200, json: async () => ({ ok: false, error: 'Wrong username or password' }) };
+        if (body.op === 'list') return { ok: true, status: 200, json: async () => ({ ok: true, appointments: rows, blocks: [{ date: ymd(day(9)), time: 'ALL', reason: 'Holiday' }], stats, photos: {}, user: body.user }) };
         if (body.op === 'status') { rows[0].status = body.status; return { ok: true, status: 200, json: async () => ({ ok: true, appointments: rows, stats }) }; }
         if (body.op === 'fee') { rows[0].fee = body.fee; return { ok: true, status: 200, json: async () => ({ ok: true, appointments: rows, stats }) }; }
         if (body.op === 'block') return { ok: true, status: 200, json: async () => ({ ok: true, appointments: rows, blocks: [{ date: body.date, time: body.time, reason: body.reason }], stats }) };
@@ -176,6 +176,7 @@ async function testAdmin() {
 
   // bad URL
   q('#a-url').value = 'https://example.com/foo';
+  q('#a-user').value = 'adminhuxley';
   q('#a-pass').value = 'secret123';
   q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
   await new Promise(r => setTimeout(r, 60));
@@ -186,7 +187,7 @@ async function testAdmin() {
   q('#a-pass').value = 'nope';
   q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
   await new Promise(r => setTimeout(r, 120));
-  check('[admin] rejects a wrong password', /wrong password/i.test(q('#loginErr').textContent), q('#loginErr').textContent);
+  check('[admin] rejects a wrong password', /wrong username or password/i.test(q('#loginErr').textContent), q('#loginErr').textContent);
 
   // good login
   q('#a-url').value = API;

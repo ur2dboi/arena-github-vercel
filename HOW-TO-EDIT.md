@@ -87,7 +87,23 @@ Just tell me which one you prefer and I'll wire it up.
 
 ---
 
-## 6. Logo files
+## 6. Photos — change them from the admin portal
+
+You do **not** need to edit any file to change the photos. Once the backend is connected:
+
+1. Open **`your-site.com/admin.html`** and sign in
+2. Go to the **Website photos** tab
+3. Find the slot (Homepage hero, Wedding & engagement rings, Pendants, …)
+4. Press **Upload photo** and pick an image — or paste a link and press **Save**
+5. Refresh the website — it is live
+
+Photos are stored in Google Drive ("Huxley Website Photos") and the website loads them automatically. **Reset** puts the original design photo back.
+
+If you ever want to change the *built-in* photos instead (the ones shown before any upload), replace the files in `assets/img/` keeping the same names — the site falls back to them whenever the backend is unreachable.
+
+---
+
+## 7. Logo files
 
 Your logo image has been cleaned up into a transparent version, so it sits perfectly on the cream background with no cream box around it:
 
@@ -107,7 +123,7 @@ To change the logo later, drop a new transparent PNG in at `assets/img/logo-lock
 
 ---
 
-## 7. The appointment booking system
+## 8. The appointment booking system
 
 Clients pick a date on the calendar, pick a time slot, fill in their details, read the Appointment Policy, tick the box, and send. The request arrives in your inbox as an email, and you reply to confirm (sending the Google Maps location with the confirmation).
 

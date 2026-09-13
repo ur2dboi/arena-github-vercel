@@ -38,12 +38,14 @@ maintain — plain HTML, CSS and JavaScript.
 - Confirmation panel with an "Add to my calendar" (.ics) download
 - Facebook, phone and email contact throughout; nationwide-shipping messaging
 
-**Admin portal** (`/admin`)
+**Admin portal** (`/admin`) — username + password, verified server-side
 - Stats: today, upcoming, pending, confirmed, total, fees collected
 - Search and filter every appointment; one-tap Confirm · Done · Cancel
 - Track the ₱1,000 reservation fee: Unpaid → Paid → Deducted
 - Block a slot or close a whole day — the public calendar updates instantly
 - Export to CSV; auto-refreshes; works on a phone ("Add to Home Screen")
+- **Website photos**: upload or link a new photo for any of the nine slots, or reset it
+- **Settings**: change the admin username and password (stored salted + hashed)
 
 ---
 
@@ -121,8 +123,10 @@ The booking flow and admin portal have automated tests (jsdom, no browser needed
 
 ```bash
 npm install jsdom
+node tools/test_gas.js        # the Apps Script backend, run against mocked Google services
 node tools/test_booking.js    # calendar, slots, validation, .ics
-node tools/test_backend.js    # database flow, double-booking, admin portal
+node tools/test_backend.js    # database flow, double-booking
+node tools/test_admin_v2.js   # admin login, change password, photo management
 ```
 
 ---

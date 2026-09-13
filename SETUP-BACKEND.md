@@ -86,7 +86,8 @@ Upload `admin.html` along with `index.html` when you deploy. It is `noindex, nof
 
 | Property | Value | Purpose |
 |---|---|---|
-| `ADMIN_PASSWORD` | *(choose a password)* | Your admin portal login. **Required.** |
+| `ADMIN_USER` | `adminhuxley` | Your admin portal username. |
+| `ADMIN_PASSWORD` | `huxley2026` | Your admin portal password. **Required.** Change it from the portal after your first sign-in. |
 | `OWNER_EMAIL` | `huxleyjewelrycreations@gmail.com` | Where new bookings are emailed |
 | `OWNER_PHONE` | `0976 463 7003` | Shown in the customer's email |
 | `SHOP_MAPS` | your Google Maps link | Sent automatically when you confirm an appointment |
@@ -108,8 +109,14 @@ Upload `admin.html` along with `index.html` when you deploy. It is `noindex, nof
 If you'd rather not edit the file, skip the `index.html` step: the form will email you instead — but the admin portal only works with the URL in place, since it needs the database.
 
 **6. Sign in to your portal**
-- Open **`your-site.com/admin.html`** — or `huxley-jewelry.pages.dev/admin.html`.
-- Paste the `/exec` URL and your password once; the portal remembers it per browser.
+- Open **`your-site.com/admin.html`** — or `huxleyjewelry.vercel.app/admin.html`.
+- Enter the `/exec` URL once, then your **username** and **password**. The browser remembers them (password for the session only).
+- The first successful sign-in converts your password to a salted SHA-256 hash and deletes the plain one.
+
+> 🔐 **Why the password is not in the website files.** Anything inside `admin.html` or `index.html` can be read by anyone who presses Ctrl+U. So the credentials live only in Google's Script properties, and every sign-in is checked on Google's side. Never paste a password into the code — of any website.
+
+**7. Change your login (recommended)**
+In the portal go to **Settings** → change the username and/or password → **Save**. Your new details take effect immediately.
 
 ### What happens now, end to end
 
@@ -121,6 +128,7 @@ If you'd rather not edit the file, skip the `index.html` step: the form will ema
 
 ### Admin portal features
 
+**Appointments tab**
 - **Stats**: today, upcoming, pending, confirmed, total, fees collected
 - **List** with search (name / phone / email / reference) and filters (status, today / upcoming / past / everything)
 - **One-tap** Confirm · Done · Cancel · Fee paid · Deducted
@@ -128,14 +136,26 @@ If you'd rather not edit the file, skip the `index.html` step: the form will ema
 - **Export CSV** for your records or your accountant
 - Auto-refreshes every 2 minutes while open; works on a phone
 
+**Website photos tab**
+- Nine photo slots, one per part of the site — hero, rings, college rings, pendants, earrings, bangles, bracelets, chains, workshop
+- **Upload** from your phone or computer: the image is resized to 1800px and compressed in the browser before it is sent, so camera-sized files are fine
+- **Or paste a link** if the photo is already online
+- **Reset** returns a slot to the original design photo
+- Photos are stored in a **Google Drive folder called "Huxley Website Photos"** and appear on the website within seconds
+
+**Settings tab**
+- Change your **username** and/or **password** (current password required; minimum 6 characters)
+
 ### If you go over the free limits
 
 Consumer Apps Script allows **90 minutes of script runtime per day**, **6 minutes per execution**, and **20,000 URL fetches per day**; a consumer Gmail account can send **100 emails/day**. A shop taking a handful of bookings a day uses a fraction of that. If you ever outgrow it, the migration is to Supabase — the website and portal keep working, only the backend changes.
 
-### Two things to know
+### Things to know
 
-- **Keep the sheet private.** Anyone with edit access can change bookings. Don't share it publicly.
+- **Keep the sheet private.** Anyone with edit access can change bookings. Don't share it publicly. The Drive folder only needs "Anyone with the link → Viewer", which the script sets for you.
 - **Back it up occasionally.** Sheet → **File → Make a copy** once a month is enough. Free tiers don't include automated backups.
+- **Never put the password in the website files.** Change it any time from Settings.
+- **If you forget it**, clear `ADMIN_HASH` and `ADMIN_SALT` in Script properties and set `ADMIN_PASSWORD` again — the portal will pick it up and re-hash on the next sign-in.
 
 ---
 
