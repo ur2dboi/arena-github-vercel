@@ -6,7 +6,7 @@ A one-page marketing website with an appointment booking system, a Google Sheets
 database and a private admin portal. No build step, no framework, no server to
 maintain — plain HTML, CSS and JavaScript.
 
-**Live:** _add your deployed URL here_
+**Live:** https://huxleyjewelry.vercel.app
 
 ---
 
