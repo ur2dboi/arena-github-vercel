@@ -7,6 +7,12 @@
 /admin.html
   X-Robots-Tag: noindex, nofollow
 
+/login
+  X-Robots-Tag: noindex, nofollow
+
+/login.html
+  X-Robots-Tag: noindex, nofollow
+
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 

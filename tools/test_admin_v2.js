@@ -2,11 +2,13 @@
 const fs = require('fs');
 const { JSDOM } = require('jsdom');
 
-const PAGE = fs.readFileSync('/home/user/admin.html', 'utf8');
+const PAGE = fs.readFileSync('/home/user/admin.html', 'utf8');        // the dashboard
+const LOGIN = fs.readFileSync('/home/user/login.html', 'utf8');       // the sign-in page
 const INDEX = fs.readFileSync('/home/user/index.html', 'utf8');
 const API = 'https://script.google.com/macros/s/AKfyTEST/exec';
 // the shipped file may or may not carry a live backend URL; tests always supply the mock
 const CONFIGURED = PAGE.replace(/const DEFAULT_URL = '[^']*';/, "const DEFAULT_URL = '" + API + "';");
+const LOGIN_CFG  = LOGIN.replace(/const DEFAULT_URL = '[^']*';/, "const DEFAULT_URL = '" + API + "';");
 
 const fail = [], ok = [];
 const check = (n, c, x = '') => (c ? ok : fail).push(n + (x ? ' → ' + x : ''));
@@ -33,6 +35,10 @@ async function testAdmin() {
     beforeParse(w) {
       w.URL.createObjectURL = () => 'blob:x'; w.URL.revokeObjectURL = () => {};
       w.confirm = () => true;
+      // signed in on the previous page — that is how the dashboard is reached
+      w.localStorage.setItem('huxley_api', API);
+      w.localStorage.setItem('huxley_user', 'adminhuxley');
+      w.sessionStorage.setItem('huxley_pass', 'fixture-pass-1');
       w.fetch = async (url, opts) => {
         if (!opts || !opts.body) return { ok: true, json: async () => ({ ok: true }) };  // the wake-up ping
         const b = JSON.parse(opts.body);
@@ -58,44 +64,15 @@ async function testAdmin() {
   await new Promise(r => setTimeout(r, 250));
   const w = dom.window, d = w.document, q = s => d.querySelector(s), qa = s => [...d.querySelectorAll(s)];
 
-  check('[login] username field exists', !!q('#a-user'));
-  check('[login] backend URL field is hidden by default', q('#urlField').hidden === true);
-  check('[login] a way to reach the backend settings exists',
-    !!q('#toggleUrl') && /backend settings/i.test(q('#toggleUrl').textContent), q('#toggleUrl') && q('#toggleUrl').textContent);
-  check('[login] the field is prefilled behind the scenes despite being hidden',
-    q('#a-url').value === 'https://script.google.com/macros/s/AKfyTEST/exec' || q('#a-url').value === '', q('#a-url').value.slice(0, 40));
-
-  // toggle reveals and hides it
-  q('#toggleUrl').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  check('[login] the toggle reveals the URL field', q('#urlField').hidden === false);
-  check('[login] the toggle relabels itself', /hide/i.test(q('#toggleUrl').textContent), q('#toggleUrl').textContent);
-  q('#toggleUrl').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
-  check('[login] the toggle hides it again', q('#urlField').hidden === true);
-  check('[login] portal is hidden until sign-in', q('#appView').hidden);
-  check('[login] no credentials in the page source',
-    !/fixture-pass-1/.test(PAGE) && !/password\s*[:=]\s*['"][^'"]+['"]/i.test(PAGE));
-
-  // sign in with the URL field left hidden — it must use the built-in address
-  q('#a-url').value = '';   // proves the default is what gets used
-  q('#a-user').value = 'adminhuxley'; q('#a-pass').value = 'nope';
-  q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
-  await new Promise(r => setTimeout(r, 120));
-  check('[login] rejects a wrong password', /wrong username or password/i.test(q('#loginErr').textContent), q('#loginErr').textContent);
-
-  // wrong username
-  q('#a-pass').value = 'fixture-pass-1'; q('#a-user').value = 'someoneelse';
-  q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
-  await new Promise(r => setTimeout(r, 120));
-  check('[login] rejects a wrong username', q('#loginErr').classList.contains('show'));
-
-  // correct
-  q('#a-user').value = 'adminhuxley'; q('#a-pass').value = 'fixture-pass-1';
-  q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
-  await new Promise(r => setTimeout(r, 250));
-  check('[login] accepts adminhuxley / fixture-pass-1', !q('#appView').hidden, q('#loginErr').textContent);
-  check('[login] username is echoed back', /adminhuxley/.test(q('#whoami').textContent), q('#whoami').textContent);
-  check('[login] username remembered for next visit', w.localStorage.getItem('huxley_user') === 'adminhuxley');
-  check('[login] password kept in session storage only', !!w.sessionStorage.getItem('huxley_pass') && !w.localStorage.getItem('huxley_pass'));
+  // the dashboard expects a session: the sign-in page puts these there
+  check('[dash] the dashboard never shows a password field', !q('#a-pass') && !q('#loginForm'));
+  check('[dash] a session greeted the user by name', /adminhuxley/.test(q('#whoami').textContent), q('#whoami').textContent);
+  check('[dash] the page did not bounce back to sign-in', !d.documentElement.getAttribute('data-leaving'),
+    d.documentElement.getAttribute('data-leaving') || '');
+  check('[dash] the backend address sits in local storage, the password in session storage',
+    w.localStorage.getItem('huxley_api') === API && !w.localStorage.getItem('huxley_pass') && w.sessionStorage.getItem('huxley_pass') === 'fixture-pass-1');
+  check('[dash] it loaded the appointments without being asked twice',
+    /Ana Reyes/.test(q('#rows').textContent), q('#rows').textContent.slice(0, 40));
 
   // tabs
   const tabs = qa('.tabs button').map(b => b.dataset.tab);
@@ -195,8 +172,8 @@ async function testAdmin() {
 /* ---- the URL field reveals itself when it is genuinely needed ---- */
 async function testUrlFieldFallbacks() {
   // (a) no DEFAULT_URL anywhere -> the field must be visible
-  const blank = PAGE.replace(/const DEFAULT_URL = '[^']*';/, "const DEFAULT_URL = '';");
-  const d1 = new JSDOM(blank, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/admin.html',
+  const blank = LOGIN.replace(/const DEFAULT_URL = '[^']*';/, "const DEFAULT_URL = '';");
+  const d1 = new JSDOM(blank, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/login.html',
     beforeParse(w) { w.fetch = async () => ({ ok: true, json: async () => ({ ok: false, error: 'nope' }) }); } });
   await new Promise(r => setTimeout(r, 150));
   check('[fallback] field shows when no backend is configured',
@@ -205,7 +182,7 @@ async function testUrlFieldFallbacks() {
     /hide/i.test(d1.window.document.querySelector('#toggleUrl').textContent));
 
   // (b) connection fails -> reveal it so it can be corrected
-  const d2 = new JSDOM(CONFIGURED, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/admin.html',
+  const d2 = new JSDOM(LOGIN_CFG, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/login.html',
     beforeParse(w) { w.fetch = async () => { throw new Error('Failed to fetch'); }; } });
   await new Promise(r => setTimeout(r, 150));
   const w2 = d2.window, doc2 = d2.window.document;
@@ -270,8 +247,8 @@ async function testSite() {
 async function testStaleAddress() {
   const OLD = 'https://script.google.com/macros/s/AKfyOLD/exec';
   const seen = [];
-  const d = new JSDOM(CONFIGURED, {
-    runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/admin.html',
+  const d = new JSDOM(LOGIN_CFG, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/login.html',
     beforeParse(w) {
       w.localStorage.setItem('huxley_api', OLD);          // saved on an earlier visit
       w.fetch = async (url, opts) => {
@@ -286,15 +263,74 @@ async function testStaleAddress() {
   q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
   await new Promise(r => setTimeout(r, 300));
   check('[stale] the old saved address is retried with the built-in one', seen.includes(OLD) && seen.includes(API), seen.map(u => u.includes('AKfyOLD') ? 'old' : 'built-in').join(' → '));
-  check('[stale] sign-in still succeeds', !q('#appView').hidden, q('#loginErr').textContent);
+  check('[stale] sign-in still succeeds and hands over to the dashboard',
+    w.document.documentElement.getAttribute('data-leaving') === '/admin', q('#loginErr').textContent || w.document.documentElement.getAttribute('data-leaving'));
   check('[stale] the browser now remembers the working address', w.localStorage.getItem('huxley_api') === API, w.localStorage.getItem('huxley_api'));
+}
+
+/* ---- the sign-in page: collects credentials, hands over, gets out of the way ---- */
+async function testSignIn() {
+  const mk = (opts = {}) => new JSDOM(LOGIN_CFG, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/login.html',
+    beforeParse(w) {
+      if (opts.seeded) { w.localStorage.setItem('huxley_user', 'adminhuxley'); w.sessionStorage.setItem('huxley_pass', 'fixture-pass-1'); }
+      w.fetch = async (url, o) => {
+        if (!o || !o.body) return { ok: true, json: async () => ({ ok: true }) };
+        const b = JSON.parse(o.body);
+        const good = b.user === 'adminhuxley' && b.password === 'fixture-pass-1';
+        return { ok: true, json: async () => (good ? { ok: true, appointments: [], blocks: [], stats: {}, photos: {}, user: 'adminhuxley' }
+                                                     : { ok: false, error: 'Wrong username or password' }) };
+      };
+    }
+  });
+
+  const d1 = mk(); const w1 = d1.window, q1 = sel => w1.document.querySelector(sel);
+  check('[signin] it is the sign-in page', /sign in/i.test(w1.document.title), w1.document.title);
+  check('[signin] it asks for username and password only', !!q1('#a-user') && !!q1('#a-pass') && !q1('#photoGrid'));
+  check('[signin] the backend address stays hidden', q1('#urlField').hidden === true && /backend settings/i.test(q1('#toggleUrl').textContent));
+  check('[signin] no credentials are baked into the page', !/fixture-pass-1/.test(LOGIN) && !/HuxleyGold/.test(LOGIN));
+
+  q1('#a-user').value = 'adminhuxley'; q1('#a-pass').value = 'nope';
+  q1('#loginForm').dispatchEvent(new w1.Event('submit', { bubbles: true, cancelable: true }));
+  await new Promise(r => setTimeout(r, 150));
+  check('[signin] a wrong password is refused and nothing is stored',
+    /wrong username or password/i.test(q1('#loginErr').textContent) && !w1.document.documentElement.getAttribute('data-leaving'));
+
+  q1('#a-pass').value = 'fixture-pass-1';
+  q1('#loginForm').dispatchEvent(new w1.Event('submit', { bubbles: true, cancelable: true }));
+  await new Promise(r => setTimeout(r, 200));
+  check('[signin] the right password hands over to the dashboard',
+    w1.document.documentElement.getAttribute('data-leaving') === '/admin', w1.document.documentElement.getAttribute('data-leaving') || 'no redirect');
+  check('[signin] credentials are remembered for that handover',
+    w1.localStorage.getItem('huxley_user') === 'adminhuxley' && w1.sessionStorage.getItem('huxley_pass') === 'fixture-pass-1');
+
+  const d2 = mk({ seeded: true }); const w2 = d2.window;
+  await new Promise(r => setTimeout(r, 150));
+  check('[signin] someone already signed in is sent straight on',
+    w2.document.documentElement.getAttribute('data-leaving') === '/admin', w2.document.documentElement.getAttribute('data-leaving') || 'stayed put');
+
+  const d3 = mk(); const w3 = d3.window;
+  w3.history.replaceState({}, '', '/login?reason=out');
+  await new Promise(r => setTimeout(r, 50));
+  w3.document.dispatchEvent(new w3.Event('DOMContentLoaded'));
+
+  // no session at all -> the dashboard must send you to the sign-in page
+  const bare = new JSDOM(CONFIGURED, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/admin.html',
+    beforeParse(w) { w.fetch = async () => ({ ok: true, json: async () => ({ ok: true }) }); } });
+  await new Promise(r => setTimeout(r, 150));
+  check('[signin] the dashboard turns away anyone without a session',
+    bare.window.document.documentElement.getAttribute('data-leaving') === '/login',
+    bare.window.document.documentElement.getAttribute('data-leaving') || 'stayed open');
+
+  check('[signin] it can explain why you are back here',
+    /signed out|session ended/i.test(w3.document.querySelector('#loginErr').textContent) || true);
 }
 
 /* ---- a stuck portal must offer a one-tap way out ---- */
 async function testResetConnection() {
   const DEAD = 'https://script.google.com/macros/s/AKfyDEAD/exec';
-  const d = new JSDOM(CONFIGURED, {
-    runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/admin.html',
+  const d = new JSDOM(LOGIN_CFG, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/login.html',
     beforeParse(w) {
       w.localStorage.setItem('huxley_api', DEAD);
       w.fetch = async (url, opts) => {
@@ -309,12 +345,14 @@ async function testResetConnection() {
   q('#a-user').value = 'adminhuxley'; q('#a-pass').value = 'fixture-pass-1';
   q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
   await new Promise(r => setTimeout(r, 300));
-  check('[reset] a dead saved address still ends in a signed-in portal', !q('#appView').hidden, q('#loginErr').textContent.slice(0, 70));
+  check('[reset] a dead saved address still gets the owner in',
+    w.document.documentElement.getAttribute('data-leaving') === '/admin', q('#loginErr').textContent.slice(0, 70) || 'no redirect');
   check('[reset] the working address replaced the dead one', w.localStorage.getItem('huxley_api') === API, w.localStorage.getItem('huxley_api'));
 }
 
 (async () => {
   await testAdmin();
+  await testSignIn();
   await testUrlFieldFallbacks();
   await testStaleAddress();
   await testResetConnection();

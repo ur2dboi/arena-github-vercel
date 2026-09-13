@@ -4,7 +4,8 @@ const fs = require('fs');
 const { JSDOM } = require('jsdom');
 
 const INDEX = fs.readFileSync('/home/user/index.html', 'utf8');
-const ADMIN = fs.readFileSync('/home/user/admin.html', 'utf8');
+const ADMIN = fs.readFileSync('/home/user/admin.html', 'utf8');   // the dashboard
+const LOGIN = fs.readFileSync('/home/user/login.html', 'utf8');   // the sign-in page
 const API = 'https://script.google.com/macros/s/AKfyTEST/exec';
 
 const fail = [], ok = [];
@@ -150,11 +151,56 @@ async function testAdmin() {
   const stats = { total: 2, pending: 1, confirmed: 0, cancelled: 0, today: 0, upcoming: 0, revenue: 1000 };
   let blobMade = null, lastOp = null, failNext = false;
 
+  /* ---- A. the sign-in page, a page of its own ---- */
+  const domA = new JSDOM(LOGIN, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/login.html',
+    beforeParse(w) {
+      w.fetch = async (url, opts) => {
+        const body = JSON.parse(opts.body);
+        const good = body.password === 'secret123' && body.user === 'adminhuxley';
+        return { ok: true, status: 200, json: async () => (good ? { ok: true, appointments: rows, stats, user: body.user }
+                                                              : { ok: false, error: 'Wrong username or password' }) };
+      };
+    }
+  });
+  await new Promise(r => setTimeout(r, 200));
+  const wA = domA.window, dA = wA.document, qA = s => dA.querySelector(s);
+
+  check('[admin] the sign-in page is a page of its own', !!qA('#loginForm') && !qA('#photoGrid'));
+
+  // bad URL
+  qA('#a-url').value = 'https://example.com/foo';
+  qA('#a-user').value = 'adminhuxley';
+  qA('#a-pass').value = 'secret123';
+  qA('#loginForm').dispatchEvent(new wA.Event('submit', { bubbles: true, cancelable: true }));
+  await new Promise(r => setTimeout(r, 60));
+  check('[admin] rejects a non-Apps-Script URL', /does not look like a Web App URL/i.test(qA('#loginErr').textContent));
+
+  // wrong password
+  qA('#a-url').value = API;
+  qA('#a-pass').value = 'nope';
+  qA('#loginForm').dispatchEvent(new wA.Event('submit', { bubbles: true, cancelable: true }));
+  await new Promise(r => setTimeout(r, 120));
+  check('[admin] rejects a wrong password', /wrong username or password/i.test(qA('#loginErr').textContent), qA('#loginErr').textContent);
+
+  // good sign-in: it hands over instead of opening a dashboard in place
+  qA('#a-pass').value = 'secret123';
+  qA('#loginForm').dispatchEvent(new wA.Event('submit', { bubbles: true, cancelable: true }));
+  await new Promise(r => setTimeout(r, 200));
+  check('[admin] a good sign-in hands over to the dashboard',
+    dA.documentElement.getAttribute('data-leaving') === '/admin', dA.documentElement.getAttribute('data-leaving') || 'stayed put');
+  check('[admin] the session travels with the hand-over',
+    wA.localStorage.getItem('huxley_user') === 'adminhuxley' && wA.sessionStorage.getItem('huxley_pass') === 'secret123');
+
+  /* ---- B. the dashboard, reached with that session ---- */
   const dom = new JSDOM(ADMIN, {
     runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/admin.html',
     beforeParse(w) {
       w.URL.createObjectURL = b => { blobMade = b; return 'blob:csv'; };
       w.URL.revokeObjectURL = () => {};
+      w.localStorage.setItem('huxley_api', API);
+      w.localStorage.setItem('huxley_user', 'adminhuxley');
+      w.sessionStorage.setItem('huxley_pass', 'secret123');
       w.fetch = async (url, opts) => {
         const body = JSON.parse(opts.body);
         lastOp = body.op;
@@ -172,30 +218,7 @@ async function testAdmin() {
   await new Promise(r => setTimeout(r, 200));
   const w = dom.window, d = w.document, q = s => d.querySelector(s), qa = s => [...d.querySelectorAll(s)];
 
-  check('[admin] login screen shows first', !q('#loginView').hidden && q('#appView').hidden);
-
-  // bad URL
-  q('#a-url').value = 'https://example.com/foo';
-  q('#a-user').value = 'adminhuxley';
-  q('#a-pass').value = 'secret123';
-  q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
-  await new Promise(r => setTimeout(r, 60));
-  check('[admin] rejects a non-Apps-Script URL', /does not look like a Web App URL/i.test(q('#loginErr').textContent));
-
-  // wrong password
-  q('#a-url').value = API;
-  q('#a-pass').value = 'nope';
-  q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
-  await new Promise(r => setTimeout(r, 120));
-  check('[admin] rejects a wrong password', /wrong username or password/i.test(q('#loginErr').textContent), q('#loginErr').textContent);
-
-  // good login
-  q('#a-url').value = API;
-  q('#a-pass').value = 'secret123';
-  q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
-  await new Promise(r => setTimeout(r, 200));
-
-  check('[admin] portal opens after sign in', q('#loginView').hidden && !q('#appView').hidden);
+  check('[admin] the dashboard is a page of its own', !q('#loginForm') && !!q('#appView') && !!q('#photoGrid'));
   check('[admin] stats rendered', qa('#stats .stat').length === 6, qa('#stats .stat').length + ' cards');
   check('[admin] default view is today & upcoming', qa('#rows tr').length === 1, qa('#rows tr').length + ' row(s)');
   check('[admin] past appointments hidden by default', !/Ben Cruz/.test(q('#rows').textContent));

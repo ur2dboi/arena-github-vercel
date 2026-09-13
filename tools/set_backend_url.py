@@ -3,8 +3,8 @@
 
     python3 tools/set_backend_url.py 'https://script.google.com/macros/s/XXXX/exec'
 
-Updates apiUrl in index.html and DEFAULT_URL in admin.html, then reports what
-changed. Used whenever the Apps Script deployment gets a new URL.
+Updates apiUrl in index.html and DEFAULT_URL in login.html and admin.html,
+then reports what changed. Used whenever the Apps Script deployment gets a new URL.
 """
 import re, sys
 

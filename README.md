@@ -15,7 +15,8 @@ maintain — plain HTML, CSS and JavaScript.
 | Path | What it is |
 |---|---|
 | `index.html` | The public website — everything is in this one file (structure, styles, scripts). |
-| `admin.html` | The private admin portal. Password protected, `noindex`. |
+| `login.html` | The staff **sign-in page** (`/login`). Password protected, `noindex`. |
+| `admin.html` | The private **dashboard** (`/admin`) — appointments, website photos, settings. `noindex`, and it turns away anyone who is not signed in. |
 | `backend/Code.gs` | The backend: Google Apps Script + Google Sheets. Stores bookings, serves availability, sends emails. |
 | `assets/img/` | Photos used on the site. Replace these with real product photos, keeping the filenames. |
 | `assets/logo/` | Logo files: transparent lockup (web + print), star mark, favicons, social share image. |
@@ -38,7 +39,7 @@ maintain — plain HTML, CSS and JavaScript.
 - Confirmation panel with an "Add to my calendar" (.ics) download
 - Facebook, phone and email contact throughout; nationwide-shipping messaging
 
-**Admin portal** (`/admin`) — username + password, verified server-side
+**Admin** — a sign-in page (`/login`) and the dashboard (`/admin`), username + password verified server-side
 - Stats: today, upcoming, pending, confirmed, total, fees collected
 - Search and filter every appointment; one-tap Confirm · Done · Cancel
 - Track the ₱1,000 reservation fee: Unpaid → Paid → Deducted
@@ -109,7 +110,7 @@ Appointments live in a Google Sheet, reached through a Google Apps Script Web Ap
 3. **Project Settings → Script properties**: add `ADMIN_PASSWORD` (required),
    `OWNER_EMAIL`, `OWNER_PHONE`, `SHOP_MAPS`.
 4. **Deploy → New deployment → Web app** · Execute as **Me** · Access **Anyone**.
-5. Paste the `/exec` URL into `apiUrl` in `index.html` and `DEFAULT_URL` in `admin.html`.
+5. Paste the `/exec` URL into `apiUrl` in `index.html` and `DEFAULT_URL` in **both** `login.html` and `admin.html`.
 
 Full instructions with screenshots-in-words: **`SETUP-BACKEND.md`**.
 

@@ -3,3 +3,4 @@
 # (Vercel ignores this file; vercel.json "cleanUrls" does the same there)
 
 /admin      /admin.html     200
+/login      /login.html     200

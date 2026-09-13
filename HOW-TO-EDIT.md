@@ -91,7 +91,7 @@ Just tell me which one you prefer and I'll wire it up.
 
 You do **not** need to edit any file to change the photos. Once the backend is connected:
 
-1. Open **`your-site.com/admin.html`** and sign in
+1. Open **`your-site.com/login`** and sign in — you land on the dashboard at `/admin`
 2. Go to the **Website photos** tab
 3. Find the slot (Homepage hero, Wedding & engagement rings, Pendants, …)
 4. Press **Upload photo** and pick an image — or paste a link and press **Save**
@@ -194,7 +194,7 @@ This is a **request-and-confirm** system that needs no server and no monthly fee
 Once `apiUrl` is set (see **SETUP-BACKEND.md**), everything below still applies, plus:
 
 - appointments are **saved in your Google Sheet** and the slot closes for everyone instantly
-- you manage it all from **`admin.html`** — confirm, cancel, mark the ₱1,000 fee, block slots, close days, export CSV
+- you manage it all from the dashboard at **`/admin`** — confirm, cancel, mark the ₱1,000 fee, block slots, close days, export CSV
 - **Confirm** automatically emails the client your Google Maps link (set `SHOP_MAPS` in the script properties)
 - if the database is ever unreachable, the form **falls back to emailing you** so a booking is never lost
 

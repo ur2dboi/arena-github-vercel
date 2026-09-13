@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="canonical" href="https://huxleyjewelry.vercel.app/">
+<title>Sign in — Huxley Jewelry Creations</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logo/favicon-32.png">
+<style>
+:root{
+  --cream:#FBF6EA;--cream-2:#F6EEDC;--beige:#EFE3CB;--beige-2:#E7D8BA;
+  --gold:#A9761C;--gold-2:#C79A3C;--gold-soft:#DCC179;
+  --gold-line:rgba(169,118,28,.30);--gold-line-2:rgba(169,118,28,.16);
+  --ink:#2C2820;--ink-2:#574F40;--muted:#7B7260;--white:#FFFDF8;
+  --serif:'Cormorant Garamond','Didot','Times New Roman',serif;
+  --sans:'Jost','Futura','Helvetica Neue',Helvetica,Arial,sans-serif;
+  --metal:linear-gradient(100deg,#E9D08C 0%,#C9A03F 22%,#8F6116 44%,#E4C97E 62%,#B8892F 80%,#F0DEA8 100%);
+  --shadow:0 18px 40px -26px rgba(88,66,20,.42);
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--sans);font-weight:300;font-size:15px;line-height:1.6;-webkit-text-size-adjust:100%}
+img{max-width:100%;display:block}
+a{color:var(--gold);text-decoration:none}
+h1,h2,h3{font-family:var(--serif);font-weight:500;margin:0;line-height:1.15}
+button,input,select,textarea{font:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+.btn{display:inline-flex;align-items:center;gap:8px;justify-content:center;padding:11px 20px;border-radius:100px;border:1px solid transparent;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:.25s;white-space:nowrap}
+.btn-gold{background:var(--metal);color:#3A2A08;box-shadow:0 10px 24px -14px rgba(150,105,25,.8)}
+.btn-gold:hover{transform:translateY(-1px)}
+.btn-ghost{border-color:var(--gold-line);color:var(--gold);background:rgba(255,255,255,.5)}
+.btn-ghost:hover{background:var(--white);border-color:var(--gold)}
+.btn-sm{padding:8px 14px;font-size:.6rem;letter-spacing:.14em}
+.btn-danger{color:#8E3A26;border-color:rgba(142,58,38,.3)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ---------- login ---------- */
+.login{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(60% 60% at 50% 0%,rgba(220,193,121,.28),rgba(220,193,121,0) 70%),var(--cream)}
+.card{background:var(--white);border:1px solid var(--gold-line-2);border-radius:18px;box-shadow:var(--shadow);padding:clamp(24px,4vw,40px);width:100%;max-width:460px}
+.brand-logo{height:58px;width:auto;margin:0 auto 22px}
+label{display:block;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:7px}
+input,select,textarea{width:100%;padding:12px 14px;border:1px solid var(--gold-line-2);border-radius:10px;background:var(--cream);color:var(--ink);font-weight:300}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold-2);background:var(--white);box-shadow:0 0 0 3px rgba(199,154,60,.14)}
+.field{margin-bottom:16px}
+.hint{font-size:.78rem;color:var(--muted);margin-top:14px}
+.err{display:none;background:#FDF1EC;border:1px solid rgba(192,80,58,.35);color:#8E3A26;border-radius:10px;padding:11px 14px;font-size:.84rem;margin-bottom:14px}
+.err.show{display:block}
+.linklike{background:none;border:0;border-bottom:1px solid transparent;color:var(--muted);font-family:var(--sans);font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:3px 1px}
+.linklike:hover{color:var(--gold);border-bottom-color:var(--gold-line)}
+.linklike[aria-expanded="true"]{color:var(--gold)}
+.ok{display:none;background:#F0F7F0;border:1px solid rgba(47,107,62,.3);color:#2F6B3E;border-radius:10px;padding:11px 14px;font-size:.84rem;margin-bottom:14px}
+.ok.show{display:block}
+
+/* ---------- shell ---------- */
+.top{position:sticky;top:0;z-index:20;background:rgba(251,246,234,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--gold-line-2)}
+.top .bar{display:flex;align-items:center;justify-content:space-between;gap:16px;height:70px}
+.top .l{display:flex;align-items:center;gap:14px}
+.top img{height:40px;width:auto}
+.top .who{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--gold-line-2);background:var(--cream-2);overflow-x:auto}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:14px 20px;font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tabs button:hover{color:var(--gold)}
+.tabs button[aria-selected="true"]{color:var(--gold);border-bottom-color:var(--gold);background:var(--cream)}
+main{padding:26px 0 80px}
+.grid{display:grid;gap:14px}
+.stats{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-bottom:22px}
+.stat{background:var(--white);border:1px solid var(--gold-line-2);border-radius:14px;padding:16px 18px}
+.stat .n{font-family:var(--serif);font-size:1.9rem;line-height:1;color:var(--gold)}
+.stat .k{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.toolbar input,.toolbar select{width:auto;min-width:170px;flex:1 1 170px}
+.panel{background:var(--white);border:1px solid var(--gold-line-2);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.panel > h3{font-size:1.24rem;padding:18px 20px;border-bottom:1px solid var(--gold-line-2);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:900px}
+th{text-align:left;font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:400;padding:12px 14px;border-bottom:1px solid var(--gold-line-2);white-space:nowrap;background:var(--cream-2)}
+td{padding:14px;border-bottom:1px solid var(--gold-line-2);vertical-align:top;font-size:.9rem}
+tr:last-child td{border-bottom:0}
+tr.soon td{background:rgba(220,193,121,.10)}
+.when{font-family:var(--serif);font-size:1.05rem;white-space:nowrap}
+.when small{display:block;font-family:var(--sans);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-top:3px}
+.who-cell b{font-weight:400;font-family:var(--serif);font-size:1.06rem}
+.who-cell div{font-size:.82rem;color:var(--ink-2)}
+.notes{max-width:260px;font-size:.84rem;color:var(--ink-2);white-space:pre-wrap}
+.pill{display:inline-block;padding:4px 11px;border-radius:100px;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;border:1px solid}
+.p-Pending{color:#8A6410;border-color:rgba(169,118,28,.45);background:rgba(220,193,121,.20)}
+.p-Confirmed{color:#2F6B3E;border-color:rgba(47,107,62,.35);background:rgba(47,107,62,.10)}
+.p-Completed{color:#3A5A8A;border-color:rgba(58,90,138,.35);background:rgba(58,90,138,.10)}
+.p-Cancelled{color:#8E3A26;border-color:rgba(142,58,38,.35);background:rgba(142,58,38,.09)}
+.f-Paid{color:#2F6B3E;border-color:rgba(47,107,62,.35);background:rgba(47,107,62,.10)}
+.f-Unpaid{color:#8A6410;border-color:rgba(169,118,28,.45);background:rgba(220,193,121,.18)}
+.f-Deducted{color:#3A5A8A;border-color:rgba(58,90,138,.35);background:rgba(58,90,138,.10)}
+.acts{display:flex;flex-wrap:wrap;gap:6px}
+.empty{padding:48px 20px;text-align:center;color:var(--muted)}
+.side{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+.mini{background:var(--white);border:1px solid var(--gold-line-2);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+.mini h3{font-size:1.16rem;margin-bottom:12px}
+.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.row > *{flex:1;min-width:130px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--gold-line-2);background:var(--cream);border-radius:100px;padding:6px 12px;font-size:.78rem}
+.chip button{border:0;background:transparent;color:#8E3A26;cursor:pointer;font-size:.9rem;line-height:1;padding:0}
+
+/* ---------- photos tab ---------- */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;padding:20px}
+.photo{background:var(--white);border:1px solid var(--gold-line-2);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.photo .thumb{aspect-ratio:16/11;background:var(--beige);position:relative;overflow:hidden;display:grid;place-items:center}
+.photo .thumb img{width:100%;height:100%;object-fit:cover}
+.photo .thumb .none{font-size:.72rem;color:var(--muted);text-align:center;padding:10px}
+.photo .thumb .tag{position:absolute;top:9px;left:9px;background:rgba(251,246,234,.93);border:1px solid var(--gold-line);border-radius:100px;padding:4px 10px;font-size:.53rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)}
+.photo .body{padding:14px 16px 18px;display:flex;flex-direction:column;gap:10px;flex:1}
+.photo .body h4{font-family:var(--serif);font-size:1.04rem;margin:0;font-weight:500}
+.photo .body p{margin:0;font-size:.8rem;color:var(--muted)}
+.photo .foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:4px}
+.file{position:relative;overflow:hidden;display:inline-flex}
+.file input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.urlrow{display:flex;gap:8px}
+.urlrow input{flex:1;font-size:.82rem;padding:9px 11px}
+.busy{font-size:.76rem;color:var(--gold)}
+
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,140%);background:var(--ink);color:#FFF9EC;padding:12px 20px;border-radius:100px;font-size:.86rem;z-index:60;transition:transform .4s;max-width:92vw;text-align:center}
+.toast.show{transform:translate(-50%,0)}
+@media(max-width:820px){.side{grid-template-columns:1fr}.top .who{display:none}}
+@media print{.top,.tabs,.toolbar,.acts,.side,.toast{display:none}body{background:#fff}}
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div class="login" id="loginView">
+  <form class="card" id="loginForm">
+    <img class="brand-logo" src="assets/img/logo-lockup.png" alt="Huxley Jewelry Creations">
+    <h2 style="text-align:center;font-size:1.5rem">Admin portal</h2>
+    <p style="text-align:center;font-size:.86rem;color:var(--muted);margin:.6em 0 1.6em">Appointments, availability, photos and orders</p>
+    <div class="err" id="loginErr"></div>
+    <p style="text-align:center;margin:-.6em 0 1.2em" id="resetConnWrap" hidden>
+      <button type="button" class="linklike" id="resetConn" hidden>Reset connection</button>
+    </p>
+    <div class="err show" id="noBackend" hidden style="background:#FFFBF0;border-color:var(--gold-line);color:var(--ink-2)">
+      <strong>Not connected yet.</strong> Appointments are currently arriving by email at
+      <a href="mailto:huxleyjewelrycreations@gmail.com">huxleyjewelrycreations@gmail.com</a>.
+      To switch on this portal, see <em>SETUP-BACKEND.md</em>.
+    </div>
+    <div class="field" id="urlField" hidden>
+      <label for="a-url">Backend URL</label>
+      <input id="a-url" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
+      <p class="hint" style="margin-top:8px">The Web App URL from your Apps Script deployment. Stored in this browser only. It is not a password — the URL alone cannot read anything.</p>
+    </div>
+    <div class="field">
+      <label for="a-user">Username</label>
+      <input id="a-user" type="text" placeholder="adminhuxley" autocomplete="username" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="a-pass">Password</label>
+      <input id="a-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-gold" type="submit" style="width:100%">Sign in</button>
+    <p class="hint">Signed in from a shared computer? Close the tab when you are finished — your session ends with it.</p>
+    <p style="text-align:center;margin:16px 0 0">
+      <button type="button" class="linklike" id="toggleUrl" aria-expanded="false" aria-controls="urlField">Backend settings</button>
+    </p>
+  </form>
+</div>
+
+<!-- messages, e.g. after a connection reset -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   Huxley Jewelry Creations — staff sign-in
+   The dashboard lives on its own page (/admin); this page only
+   collects credentials and hands them over.
+   ============================================================ */
+
+/* ============================================================
+   Huxley admin portal
+   Credentials are verified by the Google backend, never here.
+   ============================================================ */
+const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbyp4-W_pJGcdGneY6N4Lb3vK49LJ7hA9IYm0JBM0pOhG8Q0PkFNzcXqi-FVVnG3ZgEXQw/exec';                     // ← paste your Web App /exec URL here to prefill the field
+const SLOTS = ['12:00 NN','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM'];
+
+/* keep these ids in step with PHOTO_SLOTS in backend/Code.gs */
+const PHOTOS = [
+  { id:'hero',      label:'Homepage hero',            note:'The big arch photo at the very top.' },
+  { id:'rings',     label:'Wedding & engagement rings', note:'The large feature block.' },
+  { id:'college',   label:'College rings',            note:'The second feature block.' },
+  { id:'pendant',   label:'Pendants',                 note:'Collection card.' },
+  { id:'earrings',  label:'Earrings',                 note:'Collection card.' },
+  { id:'bangles',   label:'Bangles',                  note:'Collection card.' },
+  { id:'bracelets', label:'Bracelets',                note:'Collection card.' },
+  { id:'chains',    label:'Chains',                   note:'Collection card.' },
+  { id:'workshop',  label:'Our Craft / workshop',     note:'Used in the Our Craft section and the Custom & Repairs card.' }
+];
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const pad = n => String(n).padStart(2, '0');
+const p1 = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+let URL_  = localStorage.getItem('huxley_api') || DEFAULT_URL;
+let USER_ = localStorage.getItem('huxley_user') || '';
+let PASS  = sessionStorage.getItem('huxley_pass') || '';
+let DATA  = { appointments: [], blocks: [], stats: {}, photos: {} };
+
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toast = msg => { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._h); toast._h = setTimeout(() => t.classList.remove('show'), 3200); };
+
+/* This browser may still hold an address saved from an earlier visit (an old
+   deployment, say). Rather than lock the shop out with "sign in not working",
+   fall back to the address built into this page and adopt it silently. */
+function timeoutSignal(ms) {
+  const c = new AbortController();
+  setTimeout(() => c.abort(), ms);
+  return c.signal;
+}
+async function send(url, payload) {
+  let out, failed = false;
+  try {
+    const res = await fetch(url, { method: 'POST', body: JSON.stringify(payload), redirect: 'follow', signal: timeoutSignal(60000) });
+    if (!res.ok) throw new Error('Network error ' + res.status);
+    out = await res.json();
+    failed = !!(out && out.ok === false);
+  } catch (ex) {
+    failed = true;
+    out = { ok: false, error: ex.name === 'AbortError'
+      ? 'The backend took longer than a minute to answer.'
+      : ex.message };
+  }
+  if (failed && DEFAULT_URL && url !== DEFAULT_URL) {
+    const retry = await send(DEFAULT_URL, payload);
+    if (retry && retry.ok !== false) {
+      URL_ = DEFAULT_URL;
+      localStorage.setItem('huxley_api', DEFAULT_URL);
+      toast('Using the shop\u2019s own backend address.');
+    }
+    return retry;
+  }
+  URL_ = url;
+  if (url) localStorage.setItem('huxley_api', url);
+  return out;
+}
+const api = payload => send(URL_, payload);
+const admin = (op, extra) => api(Object.assign({ action: 'admin', op, user: USER_, password: PASS }, extra || {}));
+
+/* Forget any address this browser saved on an earlier visit and try again with
+   the one built into this page. One tap beats a hunt through settings. */
+const resetBtn = $('#resetConn');
+if (resetBtn) resetBtn.addEventListener('click', () => {
+  localStorage.removeItem('huxley_api');
+  URL_ = DEFAULT_URL;
+  $('#a-url').value = '';
+  resetBtn.hidden = true; $('#resetConnWrap').hidden = true;
+  toast('Connection reset — trying again.');
+  $('#loginForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+});
+
+// wake the backend while the shop is still typing, so sign-in feels instant
+if (DEFAULT_URL) { fetch(DEFAULT_URL + '?action=ping', { redirect: 'follow' }).catch(() => {}); }
+
+/* ---------------- login ---------------- */
+$('#a-url').value = URL_ === DEFAULT_URL ? '' : URL_;
+$('#a-user').value = USER_;
+if (PASS && USER_) leave('/admin');   // already signed in on this tab
+
+
+/* Move to another page, and record where we went so the tests can follow. */
+function leave(page) {
+  document.documentElement.setAttribute('data-leaving', page);
+  location.replace(page);
+}
+/* The backend URL is a deployment detail, not something the shop needs to see.
+   It stays tucked away unless there is genuinely no address to work with, or a
+   connection actually fails — then it appears with a nudge. */
+const urlField = $('#urlField'), toggleUrl = $('#toggleUrl');
+function showUrlField(show) {
+  urlField.hidden = !show;
+  toggleUrl.setAttribute('aria-expanded', String(show));
+  toggleUrl.textContent = show ? 'Hide backend settings' : 'Backend settings';
+  if (show) $('#a-url').value = $('#a-url').value || DEFAULT_URL;
+}
+toggleUrl.addEventListener('click', () => showUrlField(urlField.hidden));
+if (!URL_) {
+  showUrlField(true);                   // nothing to try if it is not configured
+  const nb = document.getElementById('noBackend');
+  if (nb) nb.hidden = false;
+}
+
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const url = ($('#a-url').value || DEFAULT_URL).trim();
+  const user = $('#a-user').value.trim();
+  const pass = $('#a-pass').value;
+  const err = $('#loginErr');
+  err.classList.remove('show');
+
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(url)) {
+    err.textContent = 'That does not look like a Web App URL. It should start with https://script.google.com/macros/s/ and end with /exec';
+    err.classList.add('show'); return;
+  }
+  if (!user || !pass) { err.textContent = 'Please enter your username and password.'; err.classList.add('show'); return; }
+
+  const btn = e.target.querySelector('button[type=submit]');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  // Google's free backend dozes off, so the first sign-in of the day can take
+  // half a minute. Say so instead of looking frozen.
+  const slow = setTimeout(() => {
+    if (btn.disabled) btn.textContent = 'Still signing in… (the backend is waking up)';
+  }, 4000);
+  try {
+    const out = await api({ action: 'admin', op: 'list', user, password: pass });
+    if (!out.ok) throw new Error(out.error || 'Sign in failed');
+    // send() may have quietly swapped in the shop's built-in address; keep the one that answered
+    USER_ = user; PASS = pass;
+    localStorage.setItem('huxley_api', URL_);
+    localStorage.setItem('huxley_user', user);
+    sessionStorage.setItem('huxley_pass', pass);
+    leave('/admin');
+  } catch (ex) {
+    const looksLikeAddress = /Failed to fetch|Network error/.test(ex.message);
+    if (looksLikeAddress) showUrlField(true);
+    err.textContent = looksLikeAddress
+      ? 'Could not reach the backend. Check the address in Backend settings below, and that the Web App is deployed with access set to "Anyone".'
+      : ex.message;
+    err.classList.add('show');
+    const rst = $('#resetConn'); if (rst) { rst.hidden = false; $('#resetConnWrap').hidden = false; }
+  } finally {
+    clearTimeout(slow);
+    btn.disabled = false; btn.textContent = 'Sign in';
+  }
+});
+
+
+/* A short explanation when the dashboard sends us back here. */
+(function () {
+  const why = new URLSearchParams(location.search).get('reason');
+  if (why === 'out')     $('#loginErr').textContent = 'You have been signed out.';
+  if (why === 'expired') $('#loginErr').textContent = 'Your session ended. Please sign in again.';
+  if ($('#loginErr').textContent) $('#loginErr').classList.add('show');
+})();
+
+</script>
+</body>
+</html>

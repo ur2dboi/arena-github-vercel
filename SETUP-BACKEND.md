@@ -37,7 +37,7 @@ Technically your site deploys on Vercel perfectly — it's static files, and the
    vercel --prod   # live production
    ```
 3. When asked, set **Framework preset: Other**, leave **Build command** empty, and leave **Output directory** empty — Vercel serves the folder as-is. The included `vercel.json` then gives you:
-   - `/admin` as a clean URL instead of `/admin.html`
+   - `/admin` and `/login` as clean URLs instead of `/admin.html` and `/login.html`
    - noindex headers on the admin page
    - one-year caching on `/assets/*` so the site loads fast
 4. **Custom domain:** Project → Settings → Domains → add your domain and follow the DNS records. SSL is automatic and free.
@@ -50,7 +50,7 @@ Technically your site deploys on Vercel perfectly — it's static files, and the
 4. **Deploy** → `https://huxley-jewelry.pages.dev`, free HTTPS, forever.
 5. Updating later: **Create new deployment** and upload again.
 
-The included `_headers` and `_redirects` files are read automatically by Cloudflare Pages (and Netlify): they add the admin noindex header, long caching for images, and the tidy **`/admin`** URL.
+The included `_headers` and `_redirects` files are read automatically by Cloudflare Pages (and Netlify): they add the admin noindex headers, long caching for images, and the tidy **`/admin`** and **`/login`** URLs.
 
 | | Cost |
 |---|---|
@@ -64,10 +64,11 @@ The included `_headers` and `_redirects` files are read automatically by Cloudfl
 | File | What it is |
 |---|---|
 | `backend/Code.gs` | The backend. Paste into Google Apps Script. Stores everything in a Google Sheet, emails you and the customer, and answers the website. |
-| `admin.html` | **Your admin portal** — a private page on your own website. |
+| `login.html` | **The sign-in page** (`/login`) — asks for your username and password, then hands over to the dashboard. |
+| `admin.html` | **Your dashboard** (`/admin`) — a private page on your own website. |
 | `index.html` | The website. The booking form now saves to the database when you switch it on. |
 
-Upload `admin.html` along with `index.html` when you deploy. It is `noindex, nofollow` — search engines won't list it, and it can't be opened without your password.
+Upload `login.html` and `admin.html` along with `index.html` when you deploy. It is `noindex, nofollow` — search engines won't list it, and it can't be opened without your password.
 
 ### Setup, step by step
 
@@ -105,7 +106,7 @@ Upload `admin.html` along with `index.html` when you deploy. It is `noindex, nof
 | `SHOP_MAPS` | your Google Maps link | Sent automatically when you confirm an appointment |
 | `SHEET_ID` | *(only if the script is not attached to the sheet)* | The id from your sheet's URL |
 
-> Your deployed Web App URL is already wired into `index.html` and `admin.html`:
+> Your deployed Web App URL is already wired into `index.html`, `login.html` and `admin.html`:
 > `…/AKfycbxYavQPq4nWIqgHaGTKi99ZCqkGOn6OeYmu_Vccbm8rq9DS-astSch5yb_ZmQ5PmOJIRA/exec`
 > When you edit `Code.gs`, remember to publish it: **Deploy → Manage deployments → pencil → Version: New version → Deploy**.
 
@@ -119,17 +120,17 @@ Upload `admin.html` along with `index.html` when you deploy. It is `noindex, nof
 > "Anyone" sounds alarming but only exposes the two endpoints in the script: reading which slots are taken (no personal data at all) and submitting a booking. Everything in the admin portal needs your password.
 
 **6. Switch the website on** — already done for you
-- `index.html` has `apiUrl` set and `admin.html` has `DEFAULT_URL` set, both pointing at your deployment. If you ever redeploy and get a **new** URL, update those two lines (or just use **Backend settings** on the login screen).
+- `index.html` has `apiUrl` set and `login.html` **and** `admin.html` have `DEFAULT_URL` set, all pointing at your deployment. If you ever redeploy and get a **new** URL, update those two lines (or just use **Backend settings** on the login screen).
 - Re-upload the files. Done.
 
 If you'd rather not edit the file, skip the `index.html` step: the form will email you instead — but the admin portal only works with the URL in place, since it needs the database.
 
 **7. Sign in to your portal**
-- Open **`your-site.com/admin.html`** — or `huxleyjewelry.vercel.app/admin.html`.
+- Open **`your-site.com/login`** — or `huxleyjewelry.vercel.app/login`. You land on the dashboard at `/admin`.
 - Just enter your **username** and **password** — the backend address is already built into the page. (If you ever need it, there is a small **Backend settings** link under the form.)
 - The first successful sign-in converts your password to a salted SHA-256 hash and deletes the plain one.
 
-> 🔐 **Why the password is not in the website files.** Anything inside `admin.html` or `index.html` can be read by anyone who presses Ctrl+U. So the credentials live only in Google's Script properties, and every sign-in is checked on Google's side. Never paste a password into the code — of any website.
+> 🔐 **Why the password is not in the website files.** Anything inside `login.html`, `admin.html` or `index.html` can be read by anyone who presses Ctrl+U. So the credentials live only in Google's Script properties, and every sign-in is checked on Google's side. Never paste a password into the code — of any website.
 
 **8. Change your login (recommended)**
 In the portal go to **Settings** → change the username and/or password → **Save**. Your new details take effect immediately.
