@@ -335,13 +335,21 @@ function notify_(id, b, pax) {
     var at = slot_(b.time);
     var tel = phoneText_(b.phone);
   try {
-    MailApp.sendEmail(owner, 'New appointment — ' + nice + ', ' + at + ' (' + b.name + ')', [
-      'Reference:   ' + id, 'Date:        ' + nice, 'Time:        ' + b.time,
-      'Client:      ' + b.name, 'Contact:     ' + tel, 'Email:       ' + b.email,
-      'Person/s:    ' + pax + ' (max 3)', '', 'Purpose / notes:', b.notes || '—', '',
-      'Policy acknowledged, ₱1,000 reservation fee understood.', '',
-      'Manage this appointment in your admin portal.'
-    ].join('\n'));
+    /* Hitting Reply in this email answers the client, not the script's own
+       account, so the shop can confirm an appointment straight from the alert. */
+    MailApp.sendEmail({
+      to: owner,
+      subject: 'New appointment — ' + nice + ', ' + at + ' (' + b.name + ')',
+      name: 'Huxley Jewelry Creations website',
+      replyTo: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(b.email || '')) ? String(b.email) : owner,
+      body: [
+        'Reference:   ' + id, 'Date:        ' + nice, 'Time:        ' + b.time,
+        'Client:      ' + b.name, 'Contact:     ' + tel, 'Email:       ' + b.email,
+        'Person/s:    ' + pax + ' (max 3)', '', 'Purpose / notes:', b.notes || '—', '',
+        'Policy acknowledged, ₱1,000 reservation fee understood.', '',
+        'Manage this appointment in your admin portal.'
+      ].join('\n')
+    });
   } catch (e) {}
 
   try {

@@ -147,7 +147,15 @@ const sandbox = {
     newBlob(bytes, mime, name) { return { bytes, mime, name }; },
     sleep() {}
   },
-  MailApp: { sendEmail(to, subj, body) { mailSent.push({ to, subj, body }); } },
+  // Apps Script accepts sendEmail(to, subject, body) and sendEmail({ to, subject, body, replyTo, name })
+  MailApp: {
+    sendEmail(a, subj, body) {
+      const m = (a && typeof a === 'object')
+        ? { to: a.to, subj: a.subject, body: a.body, replyTo: a.replyTo, name: a.name }
+        : { to: a, subj, body };
+      mailSent.push(m);
+    }
+  },
   LockService: { getScriptLock: () => ({ waitLock() {}, releaseLock() {} }) },
   ContentService: {
     MimeType: { JSON: 'application/json' },
@@ -244,6 +252,12 @@ r = post({ action: 'book', date: d(3), time: '2:00 PM', name: 'Ana Reyes', phone
 check('a booking is accepted', r.ok === true && /^HX-/.test(r.id), r.error || r.id);
 check('a booking is emailed to the shop and the client', mailSent.length === 2, mailSent.length + ' emails');
 check('the shop email has the details', /Ana Reyes/.test(mailSent[0].body) && /2:00 PM/.test(mailSent[0].body));
+check('the shop alert is sent to the address in OWNER_EMAIL',
+  mailSent[0].to === 'karenrborlongan@gmail.com', String(mailSent[0].to));
+check('replying to the shop alert answers the client',
+  mailSent[0].replyTo === 'ana@example.com', String(mailSent[0].replyTo));
+check('the shop alert is named after the website',
+  /Huxley Jewelry Creations/.test(mailSent[0].name || ''), String(mailSent[0].name));
 
 r = post({ action: 'book', date: d(3), time: '2:00 PM', name: 'Ben Cruz', phone: '0917', email: 'b@e.com', pax: 1, agree: true });
 check('the same slot cannot be booked twice', r.ok === false && r.taken === true, r.error);
