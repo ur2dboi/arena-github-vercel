@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <link rel="canonical" href="https://huxleyjewelry.vercel.app/">
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <title>Dashboard — Huxley Jewelry Creations</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/logo/favicon-32.png">
 <style>
@@ -306,6 +308,23 @@ let USER_ = localStorage.getItem('huxley_user') || '';
 let PASS  = sessionStorage.getItem('huxley_pass') || '';
 let DATA  = { appointments: [], blocks: [], stats: {}, photos: {} };
 
+/* The backend can take a second to answer (Google spins it up on the first call
+   of the day), so the portal paints the last answer this tab received and
+   re-checks behind it. Signing in hands its own answer over, which means the
+   dashboard is already full the moment it appears. */
+const CACHE_KEY = 'huxley_cache';
+let CACHE = null;
+try { CACHE = JSON.parse(sessionStorage.getItem(CACHE_KEY) || 'null'); } catch (e) { CACHE = null; }
+if (!CACHE || !CACHE.data || !CACHE.t) CACHE = null;
+const CACHE_MAX_AGE = 20 * 60 * 1000;      // an old copy is better than an empty screen, but only for a while
+
+function saveCache() {
+  try {
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(),
+      data: { appointments: DATA.appointments, blocks: DATA.blocks, stats: DATA.stats, photos: DATA.photos, user: USER_ } }));
+  } catch (e) {}                            // storage blocked or full: the portal still works
+}
+
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const toast = msg => { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._h); toast._h = setTimeout(() => t.classList.remove('show'), 3200); };
 
@@ -363,11 +382,15 @@ function startDashboard() {
   $('#whoami').textContent = 'Signed in as ' + USER_;
   $('#s-user').value = USER_;
   $('#b-time').innerHTML = '<option value="ALL">Whole day (closed)</option>' + SLOTS.map(s => '<option>' + s + '</option>').join('');
-  load(true);
+
+  const age = CACHE ? Date.now() - CACHE.t : Infinity;
+  if (CACHE && age < CACHE_MAX_AGE) applyData(CACHE.data, true);   // on screen at once
+  if (age < 20000) setTimeout(() => load(true), 2500);             // sign-in just fetched this: confirm quietly
+  else load(true);
 }
 
 $('#outBtn').addEventListener('click', () => {
-  sessionStorage.removeItem('huxley_pass'); PASS = '';
+  sessionStorage.removeItem('huxley_pass'); sessionStorage.removeItem(CACHE_KEY); PASS = '';
   leave('/login?reason=out');
 });
 /* ---------------- tabs ---------------- */
@@ -377,14 +400,16 @@ $$('.tabs button').forEach(b => b.addEventListener('click', () => {
 }));
 
 /* ---------------- data ---------------- */
+let loading = false;
 async function load(silent) {
-  if (!PASS || !USER_) return;
+  if (!PASS || !USER_ || loading) return;          // one request at a time
+  loading = true;
   try {
     const out = await admin('list');
     if (out && out.ok === false) {
       // the saved password is no longer good — back to the sign-in page
       if (/wrong username|wrong password/i.test(String(out.error))) {
-        sessionStorage.removeItem('huxley_pass');
+        sessionStorage.removeItem('huxley_pass'); sessionStorage.removeItem(CACHE_KEY);
         return leave('/login?reason=expired');
       }
       if (!silent) toast(out.error);
@@ -394,16 +419,19 @@ async function load(silent) {
     if (!silent) toast('Up to date');
   } catch (ex) {
     if (!silent) toast('Could not load: ' + ex.message);
+  } finally {
+    loading = false;
   }
 }
 
-function applyData(out) {
+function applyData(out, keepCacheStamp) {
   DATA.appointments = out.appointments || DATA.appointments || [];
   DATA.blocks = out.blocks || DATA.blocks || [];
   DATA.stats = out.stats || DATA.stats || {};
   if (out.photos) DATA.photos = out.photos;
   if (out.user) { USER_ = out.user; localStorage.setItem('huxley_user', out.user); $('#whoami').textContent = 'Signed in as ' + out.user; $('#s-user').value = out.user; }
   renderStats(); renderRows(); renderBlocks(); renderPhotos();
+  if (!keepCacheStamp) saveCache();
 }
 
 /* The reservation fee. Only a fee the shop explicitly marked Paid — or

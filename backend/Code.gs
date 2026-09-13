@@ -373,7 +373,10 @@ function admin_(b) {
   }
 
   switch (b.op) {
-    case 'list':      return { ok: true, appointments: list_(), blocks: blocks_(), stats: stats_(), photos: photos_(), user: prop_('ADMIN_USER') || DEFAULT_USER };
+    case 'list': {
+      var appts = list_();
+      return { ok: true, appointments: appts, blocks: blocks_(), stats: stats_(appts), photos: photos_(), user: prop_('ADMIN_USER') || DEFAULT_USER };
+    }
     case 'status':    return setStatus_(b.id, b.status);
     case 'fee':       return setFee_(b.id, b.fee);
     case 'shopNote':  return setShopNote_(b.id, b.note);
@@ -455,8 +458,10 @@ function feeCollected_(fee) {
   return feeState_(fee) !== 'Unpaid';
 }
 
-function stats_() {
-  var a = list_();
+/* Counts the appointments it is handed, so one dashboard load reads the
+   Appointments tab once instead of twice - the second read was pure latency. */
+function stats_(appts) {
+  var a = appts || list_();
   var today = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
   var s = { total: a.length, pending: 0, confirmed: 0, cancelled: 0, today: 0, upcoming: 0, revenue: 0 };
   a.forEach(function (x) {
@@ -498,7 +503,8 @@ function setStatus_(id, status) {
     } catch (e) {}
   }
   log_('admin', 'Status ' + id + ' → ' + status);
-  return { ok: true, appointments: list_(), stats: stats_() };
+  var appts = list_();
+  return { ok: true, appointments: appts, stats: stats_(appts) };
 }
 
 function setFee_(id, fee) {
@@ -511,7 +517,8 @@ function setFee_(id, fee) {
   }
   sheet_(SHEET_APPTS).getRange(row, 11).setValue(canon);
   log_('admin', 'Fee ' + id + ' → ' + canon);
-  return { ok: true, appointments: list_(), stats: stats_() };
+  var appts = list_();
+  return { ok: true, appointments: appts, stats: stats_(appts) };
 }
 
 function setShopNote_(id, note) {
@@ -526,7 +533,8 @@ function del_(id) {
   if (row < 0) return { ok: false, error: 'Not found' };
   sheet_(SHEET_APPTS).deleteRow(row);
   log_('admin', 'Deleted ' + id);
-  return { ok: true, appointments: list_(), stats: stats_() };
+  var appts = list_();
+  return { ok: true, appointments: appts, stats: stats_(appts) };
 }
 
 /* Sheets hands the date column back as a real Date, so never compare the cell
@@ -540,7 +548,8 @@ function block_(date, time, reason) {
   });
   sh.appendRow([want, time, reason, new Date()]);
   log_('admin', 'Blocked ' + want + ' ' + time);
-  return { ok: true, blocks: blocks_(), appointments: list_(), stats: stats_() };
+  var appts = list_();
+  return { ok: true, blocks: blocks_(), appointments: appts, stats: stats_(appts) };
 }
 
 function unblock_(date, time) {
@@ -552,7 +561,8 @@ function unblock_(date, time) {
     if (ymd_(r[0]) === want && (slot_(r[1]) || 'ALL') === time) { sh.deleteRow(i); removed++; }
   }
   log_('admin', 'Unblocked ' + want + ' ' + time + ' (' + removed + ')');
-  return { ok: true, removed: removed, blocks: blocks_(), appointments: list_(), stats: stats_() };
+  var appts = list_();
+  return { ok: true, removed: removed, blocks: blocks_(), appointments: appts, stats: stats_(appts) };
 }
 
 /* ============================================================

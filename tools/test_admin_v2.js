@@ -330,6 +330,71 @@ async function testStaleAddress() {
   check('[stale] sign-in still succeeds and hands over to the dashboard',
     w.document.documentElement.getAttribute('data-leaving') === '/admin', q('#loginErr').textContent || w.document.documentElement.getAttribute('data-leaving'));
   check('[stale] the browser now remembers the working address', w.localStorage.getItem('huxley_api') === API, w.localStorage.getItem('huxley_api'));
+  const handed = w.sessionStorage.getItem('huxley_cache') || '';
+  check('[speed] the sign-in answer is handed to the dashboard',
+    !!handed && /appointments/.test(handed) && JSON.parse(handed).t > 0, handed.length + ' bytes stored');
+}
+
+/* ---- speed: the portal must never sit empty while Google's backend wakes up ---- */
+async function testSpeed() {
+  const cached = {
+    t: Date.now(),
+    data: {
+      appointments: [{
+        row: 2, id: 'HX-CACHE', submitted: '2026-09-13 09:00', date: ymd(day(1)), time: '12:00 NN',
+        name: 'Cached Client', phone: '0917', email: 'cached@example.com', pax: 1,
+        notes: 'from the cache', status: 'Pending', fee: 'Unpaid', confirmedAt: '', shopNote: ''
+      }],
+      blocks: [{ date: ymd(day(3)), time: 'ALL', reason: 'Cached holiday' }],
+      stats: { total: 1, pending: 1, revenue: 0 }, photos: {}, user: 'adminhuxley'
+    }
+  };
+  const fresh = {
+    appointments: [{
+      row: 2, id: 'HX-FRESH', submitted: '2026-09-13 09:30', date: ymd(day(2)), time: '1:00 PM',
+      name: 'Fresh Client', phone: '0918', email: 'fresh@example.com', pax: 2,
+      notes: 'from the backend', status: 'Confirmed', fee: 'Paid', confirmedAt: '', shopNote: ''
+    }],
+    blocks: [], stats: { total: 1, confirmed: 1, revenue: 1000 }, photos: {}, user: 'adminhuxley'
+  };
+  const calls = [];
+  let release;                                   // the backend answers only when we let it
+  const d = new JSDOM(CONFIGURED, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://huxleyjewelry.vercel.app/admin.html',
+    beforeParse(w) {
+      w.URL.createObjectURL = () => 'blob:x'; w.URL.revokeObjectURL = () => {};
+      w.localStorage.setItem('huxley_api', API);
+      w.localStorage.setItem('huxley_user', 'adminhuxley');
+      w.sessionStorage.setItem('huxley_pass', 'fixture-pass-1');
+      w.sessionStorage.setItem('huxley_cache', JSON.stringify(cached));
+      w.fetch = (url, opts) => {
+        if (!opts || !opts.body) return new Promise(() => {});          // the wake ping never answers
+        calls.push(JSON.parse(opts.body).op);
+        return new Promise(res => { release = () => res({ ok: true, json: async () => Object.assign({ ok: true }, fresh) }); });
+      };
+    }
+  });
+  await new Promise(r => setTimeout(r, 400));
+  const w = d.window, doc = w.document, q = sel => doc.querySelector(sel);
+  check('[speed] the dashboard shows the last answer at once',
+    /Cached Client/.test(q('#rows').textContent) && /Cached holiday/.test(q('#blocks').textContent),
+    q('#rows').textContent.replace(/\s+/g, ' ').slice(0, 46));
+  check('[speed] a fresh sign-in answer is not asked for twice',
+    calls.filter(op => op === 'list').length === 0, calls.length ? calls.join(' | ') : 'no request yet');
+
+  q('#refreshBtn').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  await new Promise(r => setTimeout(r, 120));
+  release && release();
+  await new Promise(r => setTimeout(r, 250));
+  check('[speed] Refresh still asks the backend', calls.includes('list'), calls.join(' | '));
+  check('[speed] the backend answer replaces the cached one',
+    /Fresh Client/.test(q('#rows').textContent) && /\u20b11,000/.test(q('#stats').textContent),
+    q('#rows').textContent.replace(/\s+/g, ' ').slice(0, 46));
+  check('[speed] the newer answer is what the next visit starts from',
+    /Fresh Client/.test(w.sessionStorage.getItem('huxley_cache') || ''));
+
+  q('#outBtn').dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
+  check('[speed] signing out clears the cached bookings', !w.sessionStorage.getItem('huxley_cache'));
 }
 
 /* ---- the sign-in page: collects credentials, hands over, gets out of the way ---- */
@@ -433,6 +498,7 @@ async function testResetConnection() {
   await testSignIn();
   await testUrlFieldFallbacks();
   await testStaleAddress();
+  await testSpeed();
   await testResetConnection();
   await testSite();
   console.log('\nPASS (' + ok.length + ')');

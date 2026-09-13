@@ -259,6 +259,21 @@ check('availability never exposes client details', !/Ana Reyes|09181234567/.test
 const list = post(auth({ op: 'list' }));
 check('list returns the appointment', list.appointments.length === 1 && list.appointments[0].name === 'Ana Reyes');
 check('stats computed', list.stats.total === 1 && list.stats.pending === 1, JSON.stringify(list.stats));
+
+/* the dashboard should read the sheet once per load, not once per figure */
+(function () {
+  const apt = SHEETS['Appointments'], original = apt.getRange;
+  let reads = 0;
+  apt.getRange = function () {
+    const r = original.apply(this, arguments);
+    const gv = r.getValues;
+    r.getValues = function () { reads++; return gv.apply(this, arguments); };
+    return r;
+  };
+  post(auth({ op: 'list' }));
+  apt.getRange = original;
+  check('one dashboard load reads the appointments tab once', reads === 1, reads + ' read(s)');
+})();
 const id = list.appointments[0].id;
 
 r = post(auth({ op: 'status', id: id, status: 'Confirmed' }));

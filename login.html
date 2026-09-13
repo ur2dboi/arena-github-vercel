@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <link rel="canonical" href="https://huxleyjewelry.vercel.app/">
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <title>Sign in — Huxley Jewelry Creations</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/logo/favicon-32.png">
 <style>
@@ -254,8 +256,20 @@ if (resetBtn) resetBtn.addEventListener('click', () => {
   $('#loginForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 });
 
-// wake the backend while the shop is still typing, so sign-in feels instant
-if (DEFAULT_URL) { fetch(DEFAULT_URL + '?action=ping', { redirect: 'follow' }).catch(() => {}); }
+/* Wake the backend while the shop is still typing, so the first sign-in of the
+   day does not wait for Google to spin it up. Re-pinged whenever they touch the
+   form, never more than once every 8 seconds. */
+let wokeAt = 0;
+function wake() {
+  if (!DEFAULT_URL) return;
+  if (Date.now() - wokeAt < 8000) return;
+  wokeAt = Date.now();
+  fetch(DEFAULT_URL + '?action=ping', { redirect: 'follow', cache: 'no-store' }).catch(() => {});
+}
+wake();
+const inForm = e => e.target && e.target.closest && e.target.closest('#loginForm');
+document.addEventListener('focusin', e => { if (inForm(e)) wake(); }, true);
+document.addEventListener('keydown', e => { if (inForm(e)) wake(); }, true);
 
 /* ---------------- login ---------------- */
 $('#a-url').value = URL_ === DEFAULT_URL ? '' : URL_;
@@ -308,6 +322,8 @@ $('#loginForm').addEventListener('submit', async e => {
     localStorage.setItem('huxley_api', URL_);
     localStorage.setItem('huxley_user', user);
     sessionStorage.setItem('huxley_pass', pass);
+    // hand the dashboard what we just fetched, so it does not pay for a second round trip
+    try { sessionStorage.setItem('huxley_cache', JSON.stringify({ t: Date.now(), data: out })); } catch (e) {}
     leave('/admin');
   } catch (ex) {
     const looksLikeAddress = /Failed to fetch|Network error/.test(ex.message);
