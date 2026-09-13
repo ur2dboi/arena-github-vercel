@@ -1,7 +1,11 @@
 import { JSDOM } from 'jsdom';
 
 const SITE = 'https://huxleyjewelry.vercel.app';
-const USER = process.argv[2], PASS = process.argv[3];
+const USER = process.argv[2] || process.env.HUXLEY_USER, PASS = process.argv[3] || process.env.HUXLEY_PASS;
+if (!USER || !PASS) {
+  console.error('usage: node live_admin_split.mjs <username> <password>   (or set HUXLEY_USER and HUXLEY_PASS)');
+  process.exit(2);
+}
 let pass = 0, fail = 0;
 const check = (name, ok, extra = '') => { ok ? pass++ : fail++; console.log(`  ${ok ? '✓' : '✗'} ${name}${extra ? '  → ' + extra : ''}`); };
 
@@ -64,7 +68,7 @@ for (let i = 0; i < 40; i++) {
   await new Promise(r => setTimeout(r, 1000));
   bits = { rows: q2('#rows') ? q2('#rows').innerHTML.trim() : '', photos: q2('#photoGrid') ? q2('#photoGrid').innerHTML.trim() : '',
            toast: q2('#toast') ? q2('#toast').textContent : '', stats: q2('#stats') ? q2('#stats').textContent.trim() : '' };
-  if (bits.rows && bits.photos && /Signed in as/.test(q2('#whoami').textContent)) break;
+  if (/Signed in as \S/.test(q2('#whoami').textContent) && bits.stats.trim()) break;
 }
 console.log('   stats:', bits.stats.replace(/\s+/g, ' ').slice(0, 70), '| toast:', bits.toast.slice(0, 60));
 // what is actually on screen, following the ancestors (the split once left the dashboard hidden)
