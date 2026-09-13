@@ -294,7 +294,7 @@ header.scrolled{border-bottom-color:var(--gold-line-2);background:rgba(251,246,2
 .mini p{font-size:.92rem;color:var(--ink-2);margin:0}
 
 /* ---------- form ---------- */
-.order-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(26px,4.5vw,64px);align-items:start}
+.contact-wrap{max-width:680px;margin:0 auto}
 .form{background:var(--white);border:1px solid var(--gold-line-2);border-radius:var(--radius);padding:clamp(24px,3.4vw,42px);box-shadow:var(--shadow)}
 .f-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 label{display:block;font-size:.62rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin:0 0 8px}
@@ -465,7 +465,7 @@ footer p{font-size:.9rem;color:var(--ink-2)}
   .appt-grid{grid-template-columns:1fr}
   .menu,.nav-cta .btn{display:none}
   .burger{display:block}
-  .hero-grid,.split,.order-grid{grid-template-columns:1fr}
+  .hero-grid,.split{grid-template-columns:1fr}
   .split.flip .art{order:0}
   .hero-art{max-width:520px;margin:0 auto;width:100%}
   .arch-outline{display:none}
@@ -882,11 +882,10 @@ footer p{font-size:.9rem;color:var(--ink-2)}
       <p class="eyebrow center">Start an Order</p>
       <h2>Tell us what you have in mind</h2>
       <div class="divider"><span></span><i class="star" data-star></i><span></span></div>
-      <p>Fill this in and we will send your request straight to our inbox with all the details already written out — or simply call or text us.</p>
+      <p>Call or text, send us a message on Facebook, or book an appointment online — whichever is easiest for you.</p>
     </div>
 
-    <div class="order-grid">
-      <!-- contact details -->
+    <div class="contact-wrap">
       <div class="contact-card rv">
         <p class="eyebrow bare">Talk to us directly</p>
         <div class="contact-line">
@@ -895,14 +894,6 @@ footer p{font-size:.9rem;color:var(--ink-2)}
             <div class="k">Call or text</div>
             <div class="v"><a href="tel:+639764637003" data-site-href="tel" data-site="phone">0976 463 7003</a></div>
             <button class="copy" data-copy="phone" type="button">Copy number</button>
-          </div>
-        </div>
-        <div class="contact-line">
-          <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m3.8 7 8.2 6 8.2-6"/></svg></span>
-          <div>
-            <div class="k">Email</div>
-            <div class="v"><a href="mailto:huxleyjewelrycreations@gmail.com" data-site-href="mailto" data-site="email">huxleyjewelrycreations@gmail.com</a></div>
-            <button class="copy" data-copy="email" type="button">Copy email</button>
           </div>
         </div>
         <div class="contact-line">
@@ -928,71 +919,6 @@ footer p{font-size:.9rem;color:var(--ink-2)}
         </div>
       </div>
 
-      <!-- form -->
-      <div class="rv" style="transition-delay:.1s">
-        <form class="form" id="orderForm" novalidate>
-          <div class="f-row">
-            <div class="field">
-              <label for="f-name">Your name</label>
-              <input id="f-name" name="name" type="text" placeholder="Juan Dela Cruz" required>
-            </div>
-            <div class="field">
-              <label for="f-phone">Contact number</label>
-              <input id="f-phone" name="phone" type="tel" placeholder="09xx xxx xxxx" required>
-            </div>
-          </div>
-          <div class="field">
-            <label for="f-email">Email <span style="text-transform:none;letter-spacing:.06em;color:var(--muted)">(optional)</span></label>
-            <input id="f-email" name="email" type="email" placeholder="you@email.com">
-          </div>
-          <div class="f-row">
-            <div class="field">
-              <label for="f-piece">What would you like made?</label>
-              <select id="f-piece" name="piece">
-                <option>Wedding ring set</option>
-                <option>Engagement ring</option>
-                <option>Pendant</option>
-                <option>College ring</option>
-                <option>Earrings</option>
-                <option>Bangle</option>
-                <option>Bracelet</option>
-                <option>Chain</option>
-                <option>Custom design</option>
-                <option>Repair / resizing</option>
-                <option>Something else</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="f-metal">Metal</label>
-              <select id="f-metal" name="metal">
-                <option>Not sure — please advise</option>
-                <option>Sterling silver (925)</option>
-                <option>Gold — yellow</option>
-                <option>Gold — white</option>
-                <option>Gold — rose</option>
-                <option>Two-tone silver &amp; gold</option>
-              </select>
-            </div>
-          </div>
-          <div class="f-row">
-            <div class="field">
-              <label for="f-budget">Budget range <span style="text-transform:none;letter-spacing:.06em;color:var(--muted)">(optional)</span></label>
-              <input id="f-budget" name="budget" type="text" placeholder="e.g. ₱5,000 – ₱10,000">
-            </div>
-            <div class="field">
-              <label for="f-date">Needed by <span style="text-transform:none;letter-spacing:.06em;color:var(--muted)">(optional)</span></label>
-              <input id="f-date" name="needed" type="date">
-            </div>
-          </div>
-          <div class="field">
-            <label for="f-notes">Describe your piece</label>
-            <textarea id="f-notes" name="notes" placeholder="Ring size, engraving, stones, style, or anything you want us to know…"></textarea>
-          </div>
-          <button class="btn btn-gold" type="submit">Send my request</button>
-          <p class="note">This opens your email app with everything filled in. Prefer to chat? Call or text <a href="tel:+639764637003" data-site-href="tel" data-site="phone" style="color:var(--gold)">0976 463 7003</a>.</p>
-          <div class="thanks" id="thanks" role="status"></div>
-        </form>
-      </div>
     </div>
   </div>
 </section>
@@ -1202,46 +1128,6 @@ document.querySelectorAll('[data-copy]').forEach(btn => {
     setTimeout(() => btn.textContent = original, 1800);
   });
 });
-
-/* ---------- order form -> email ---------- */
-const form = document.getElementById('orderForm');
-const thanks = document.getElementById('thanks');
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const data = Object.fromEntries(new FormData(form).entries());
-  if (!data.name || !data.name.trim()) { form.querySelector('#f-name').focus(); return; }
-  if (!data.phone || !data.phone.trim()) { form.querySelector('#f-phone').focus(); return; }
-
-  const body = [
-    'New inquiry from the Huxley Jewelry Creations website',
-    '',
-    'Name:        ' + data.name,
-    'Contact no.: ' + data.phone,
-    'Email:       ' + (data.email || '—'),
-    '',
-    'Piece:       ' + data.piece,
-    'Metal:       ' + data.metal,
-    'Budget:      ' + (data.budget || '—'),
-    'Needed by:   ' + (data.needed || '—'),
-    '',
-    'Details:',
-    (data.notes || '—'),
-    '',
-    '— sent from huxleyjewelrycreations website'
-  ].join('\n');
-
-  const subject = 'Jewelry inquiry — ' + data.piece + ' (' + data.name + ')';
-  window.location.href = 'mailto:' + SITE.email +
-    '?subject=' + encodeURIComponent(subject) +
-    '&body=' + encodeURIComponent(body);
-
-  thanks.innerHTML = '<b>Thank you, ' + data.name.split(' ')[0].replace(/[<>]/g,'') + '.</b><br>' +
-    'Your email app should now be open with your request written out. If nothing happened, just call or text us at ' +
-    '<a href="tel:' + SITE.phoneRaw + '" style="color:var(--gold)">' + SITE.phoneDisplay + '</a> — we will take your details over the phone.';
-  thanks.classList.add('show');
-  softScroll(thanks, 'nearest');
-});
-
 /* ============================================================
    APPOINTMENT BOOKING
    ------------------------------------------------------------

@@ -54,7 +54,7 @@ All text is plain HTML in `index.html`. Section order:
 5. Our Craft
 6. How to Order (4 steps)
 7. Good to Know (metals & stones, sizing, engraving)
-8. Start an Order (contact card + form)
+8. Start an Order (contact card — phone, location, Facebook)
 9. FAQ
 10. CTA band + footer
 
@@ -62,16 +62,25 @@ Search for a phrase you want to change, edit the text, save.
 
 ---
 
-## 4. The order form
+## 4. How customers reach you (the "Start an Order" card)
 
-The form has no server — it composes an email with all the customer's answers and opens their mail app addressed to your email. It works offline and needs no setup.
+There is **no order form and no email address on the site**. The Start an Order card gives
+people four direct routes instead:
 
-**Want messages to land directly in an inbox or Messenger instead?** Good free options:
-- **Formspree** (formspree.io) — paste one line into the `<form>` tag and submissions arrive by email.
-- **Google Forms / Tally** — link out to your existing form.
-- **Facebook Messenger** — change the submit button to a `m.me/yourpage` link, since most of your customers are already on your page.
+- **Call or text** — the number with a "Copy number" button
+- **Where we are** — Bulacan & Quezon City
+- **Ordering** — by appointment, message us anytime
+- **Facebook** — the page link
 
-Just tell me which one you prefer and I'll wire it up.
+Customers book appointments with the booking form further up the page; that booking goes
+into your Google Sheet and shows up in the admin dashboard.
+
+To change the phone number or location, edit the text inside that card in `index.html`
+(search for "Start an Order"). The same phone number also lives in the header button, the
+contact links and the booking section — search for `09764637003` and replace every hit.
+
+**If you ever want a message form back**, say so and I will add one that posts straight to
+your Sheet (like the bookings do), so nothing depends on the customer's own mail app.
 
 ---
 
