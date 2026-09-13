@@ -41,9 +41,9 @@ Replace the files in `assets/img/` — keep the same file names and the site pic
 | `hero.jpg` | Big image at the top (best size: 1400 × 768) |
 | `rings.jpg` | Wedding & engagement rings feature |
 | `college-ring.jpg` | College rings feature |
-| `pendant.jpg` `earrings.jpg` `bangles.jpg` `bracelets.jpg` `chains.jpg` | The six collection cards |
 | `workshop-v2.jpg` | The "Our Craft" photo |
-| `repairs.jpg` | The Custom & Repairs card |
+
+Still in `assets/img/` but no longer shown anywhere: `pendant.jpg`, `earrings.jpg`, `bangles.jpg`, `bracelets.jpg`, `chains.jpg` and `repairs.jpg` — they were the six collection cards, removed at the shop's request. Keep them or delete them; nothing on the page refers to them.
 
 Wide/landscape photos (about 1400 × 950 or larger) look best. Your real photos of finished pieces will always beat stock imagery — especially for rings.
 
@@ -56,7 +56,7 @@ All text is plain HTML in `index.html`. Section order:
 1. Header + menu
 2. Hero
 3. Scrolling gold strip
-4. Collections (wedding/engagement + college rings featured, then 6 cards)
+4. Collections (wedding/engagement rings and college rings, side by side)
 5. Our Craft
 6. How to Order (4 steps)
 7. Start an Order (contact card — phone, ordering, Facebook)
@@ -143,7 +143,7 @@ You do **not** need to edit any file to change the photos. Once the backend is c
 
 1. Open **`your-site.com/login`** and sign in — you land on the dashboard at `/admin`. It shows the last list it fetched the moment it opens, then refreshes itself a second later, so a booking taken on another device can take a moment to appear.
 2. Go to the **Website photos** tab
-3. Find the slot (Homepage hero, Wedding & engagement rings, Pendants, …)
+3. Find the slot — Homepage hero, Wedding & engagement rings, College rings, or Our Craft
 4. Press **Upload photo** and pick an image — or paste a link and press **Save**
 5. Refresh the website — it is live
 
@@ -153,7 +153,7 @@ If you ever want to change the *built-in* photos instead (the ones shown before 
 
 ---
 
-**Not the gallery.** The Photos tab manages the ten pictures described above. The
+**Not the gallery.** The Photos tab manages the four pictures described above. The
 gallery slideshow is separate — swap those photos with `tools/build_gallery.py`
 (see section 5).
 

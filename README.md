@@ -45,7 +45,7 @@ maintain — plain HTML, CSS and JavaScript.
 - Track the ₱1,000 reservation fee: Unpaid → Paid → Deducted. **Fees collected** only counts the fees you actually marked paid — unpaid bookings stay at ₱0
 - Block a slot or close a whole day — the public calendar updates instantly
 - Export to CSV; auto-refreshes; works on a phone ("Add to Home Screen")
-- **Website photos**: upload or link a new photo for any of the nine slots, or reset it
+- **Website photos**: upload or link a new photo for any of the four slots (hero, wedding & engagement rings, college rings, Our Craft), or reset it
 - **Settings**: change the admin username and password (stored salted + hashed)
 
 ---

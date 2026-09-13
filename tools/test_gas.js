@@ -350,6 +350,13 @@ check('public photos endpoint leaks no file ids', !/folder-|id/.test(JSON.string
 r = post(auth({ op: 'savePhoto', slot: 'not-a-slot', dataUrl: 'data:image/png;base64,' + png }));
 check('an unknown photo slot is rejected', r.ok === false && /Unknown photo slot/.test(r.error), r.error);
 
+/* the collection cards were dropped from the page, so their slots went with them */
+r = post(auth({ op: 'savePhoto', slot: 'chains', dataUrl: 'data:image/png;base64,' + png }));
+check('a slot that is no longer on the page is refused', r.ok === false && /Unknown photo slot: chains/.test(r.error), r.error);
+r = post(auth({ op: 'savePhoto', slot: 'workshop', dataUrl: 'data:image/png;base64,' + png }));
+check('the four remaining slots still work', r.ok === true && /^https:\/\/lh3\.googleusercontent\.com\/d\//.test(r.url || ''), r.error || r.url);
+r = post(auth({ op: 'resetPhoto', slot: 'workshop' }));
+
 r = post(auth({ op: 'savePhoto', slot: 'hero', dataUrl: 'data:text/plain;base64,aGk=' }));
 check('a non-image upload is rejected', r.ok === false && /could not be read as an image/.test(r.error), r.error);
 

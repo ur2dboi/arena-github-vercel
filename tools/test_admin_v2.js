@@ -135,15 +135,15 @@ async function testAdmin() {
   // ---- photo manager ----
   qa('.tabs button')[1].dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   const cards = qa('#photoGrid .photo');
-  check('[photos] every slot has a card', cards.length === 10, cards.length + ' cards');
+  check('[photos] every slot has a card', cards.length === 4, cards.length + ' cards');
   check('[photos] slots match the backend list',
-    cards.map(c => c.dataset.slot).join(',') === 'hero,rings,college,pendant,earrings,bangles,bracelets,chains,workshop,repairs',
+    cards.map(c => c.dataset.slot).join(',') === 'hero,rings,college,workshop',
     cards.map(c => c.dataset.slot).join(','));
   check('[photos] current photo is shown', /googleusercontent/.test(q('#photoGrid [data-slot="hero"] img').src));
   check('[photos] slots without a photo say so', /original design photo/i.test(q('#photoGrid [data-slot="rings"]').textContent));
-  check('[photos] upload control on every card', qa('#photoGrid input[type=file]').length === 10);
+  check('[photos] upload control on every card', qa('#photoGrid input[type=file]').length === 4);
   check('[photos] each upload field targets its own slot',
-    qa('#photoGrid input[type=file]').map(i => i.dataset.upload).includes('chains'));
+    qa('#photoGrid input[type=file]').map(i => i.dataset.upload).includes('college'));
 
   // paste a link
   const urlInput = q('#photoGrid input[data-url="rings"]');
@@ -155,15 +155,15 @@ async function testAdmin() {
   check('[photos] the new photo appears immediately', /our-rings\.jpg/.test(q('#photoGrid').innerHTML));
 
   // upload a file (canvas is unavailable in jsdom, so the FileReader fallback runs)
-  const fileInput = q('#photoGrid input[type=file][data-upload="chains"]');
-  const file = new w.File([Buffer.from('89504e470d0a1a0a', 'hex')], 'chains.png', { type: 'image/png' });
+  const fileInput = q('#photoGrid input[type=file][data-upload="college"]');
+  const file = new w.File([Buffer.from('89504e470d0a1a0a', 'hex')], 'college.png', { type: 'image/png' });
   Object.defineProperty(fileInput, 'files', { value: [file] });
   fileInput.dispatchEvent(new w.Event('change', { bubbles: true }));
   await new Promise(r => setTimeout(r, 3200));
   const upload = calls.find(c => c.op === 'savePhoto');
   check('[photos] uploading a file reaches the backend', !!upload, JSON.stringify(calls.map(c => c.op)));
   check('[photos] the upload is sent as a data URL for the right slot',
-    !!upload && upload.slot === 'chains' && /^data:image\//.test(upload.dataUrl || ''), upload && String(upload.dataUrl).slice(0, 24));
+    !!upload && upload.slot === 'college' && /^data:image\//.test(upload.dataUrl || ''), upload && String(upload.dataUrl).slice(0, 24));
   check('[photos] the grid refreshes after upload', /googleusercontent\.com\/d\/NEW/.test(q('#photoGrid').innerHTML));
 
   // reset
@@ -265,7 +265,7 @@ async function testSite() {
         if (/action=photos/.test(url)) {
           return { ok: true, json: async () => ({ ok: true, photos: {
             hero: 'https://lh3.googleusercontent.com/d/HERO',
-            chains: 'https://lh3.googleusercontent.com/d/CHAINS'
+            college: 'https://lh3.googleusercontent.com/d/COLLEGE'
           } }) };
         }
         return { ok: true, json: async () => ({ ok: true, booked: {}, closed: [] }) };
@@ -288,15 +288,22 @@ async function testSite() {
   check('[site] the site asks for photos on load', calls.some(u => /action=photos/.test(u)), calls.join(' | ').slice(0, 80));
   check('[site] hero photo swapped to the shop\'s own', qa('img[data-photo="hero"]')[0].getAttribute('src') === 'https://lh3.googleusercontent.com/d/HERO',
     qa('img[data-photo="hero"]')[0].getAttribute('src'));
-  check('[site] chains photo swapped too', qa('img[data-photo="chains"]')[0].getAttribute('src') === 'https://lh3.googleusercontent.com/d/CHAINS');
+  check('[site] college rings photo swapped too', qa('img[data-photo="college"]')[0].getAttribute('src') === 'https://lh3.googleusercontent.com/d/COLLEGE');
   check('[site] untouched slots keep the built-in photo',
     qa('img[data-photo="rings"]')[0].getAttribute('src') === 'assets/img/rings.jpg',
     qa('img[data-photo="rings"]')[0].getAttribute('src'));
-  check('[site] craft and repairs are separate slots',
-    qa('img[data-photo="workshop"]').length === 1 && qa('img[data-photo="repairs"]').length === 1);
-  check('[site] craft and repairs use different photos',
-    qa('img[data-photo="workshop"]')[0].getAttribute('src') !== qa('img[data-photo="repairs"]')[0].getAttribute('src'),
-    qa('img[data-photo="workshop"]')[0].getAttribute('src') + ' vs ' + qa('img[data-photo="repairs"]')[0].getAttribute('src'));
+  check('[site] the craft photo is the only workshop image',
+    qa('img[data-photo="workshop"]').length === 1);
+  check('[site] the removed collection cards are gone',
+    ['pendant', 'earrings', 'bangles', 'bracelets', 'chains', 'repairs']
+      .every(slot => qa('img[data-photo="' + slot + '"]').length === 0),
+    ['pendant', 'earrings', 'bangles', 'bracelets', 'chains', 'repairs']
+      .filter(slot => qa('img[data-photo="' + slot + '"]').length).join(',') || 'all gone');
+  const collections = d.querySelector('#collections');
+  check('[site] that section still names what the shop makes',
+    /from a pendant to a chain/i.test(collections.textContent) && qa('#collections .feature').length === 2,
+    qa('#collections .feature').length + ' feature(s)');
+  check('[site] the old "seven ways" heading is gone', !/seven ways/i.test(collections.textContent));
 
   // no backend configured → site still works
   const plain = new JSDOM(INDEX, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/',
