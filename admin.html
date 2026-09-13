@@ -133,6 +133,11 @@ tr.soon td{background:rgba(220,193,121,.10)}
     <h2 style="text-align:center;font-size:1.5rem">Admin portal</h2>
     <p style="text-align:center;font-size:.86rem;color:var(--muted);margin:.6em 0 1.6em">Appointments, availability, photos and orders</p>
     <div class="err" id="loginErr"></div>
+    <div class="err show" id="noBackend" hidden style="background:#FFFBF0;border-color:var(--gold-line);color:var(--ink-2)">
+      <strong>Not connected yet.</strong> Appointments are currently arriving by email at
+      <a href="mailto:huxleyjewelrycreations@gmail.com">huxleyjewelrycreations@gmail.com</a>.
+      To switch on this portal, see <em>SETUP-BACKEND.md</em>.
+    </div>
     <div class="field" id="urlField" hidden>
       <label for="a-url">Backend URL</label>
       <input id="a-url" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
@@ -291,7 +296,7 @@ tr.soon td{background:rgba(220,193,121,.10)}
    Huxley admin portal
    Credentials are verified by the Google backend, never here.
    ============================================================ */
-const DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbxYavQPq4nWIqgHaGTKi99ZCqkGOn6OeYmu_Vccbm8rq9DS-astSch5yb_ZmQ5PmOJIRA/exec';                     // ← paste your Web App /exec URL here to prefill the field
+const DEFAULT_URL = '';                     // ← paste your Web App /exec URL here to prefill the field
 const SLOTS = ['12:00 NN','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM'];
 
 /* keep these ids in step with PHOTO_SLOTS in backend/Code.gs */
@@ -345,7 +350,11 @@ function showUrlField(show) {
   if (show) $('#a-url').value = $('#a-url').value || DEFAULT_URL;
 }
 toggleUrl.addEventListener('click', () => showUrlField(urlField.hidden));
-if (!URL_) showUrlField(true);          // nothing to try if it is not configured
+if (!URL_) {
+  showUrlField(true);                   // nothing to try if it is not configured
+  const nb = document.getElementById('noBackend');
+  if (nb) nb.hidden = false;
+}
 
 $('#loginForm').addEventListener('submit', async e => {
   e.preventDefault();

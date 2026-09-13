@@ -5,6 +5,8 @@ const { JSDOM } = require('jsdom');
 const PAGE = fs.readFileSync('/home/user/admin.html', 'utf8');
 const INDEX = fs.readFileSync('/home/user/index.html', 'utf8');
 const API = 'https://script.google.com/macros/s/AKfyTEST/exec';
+// the shipped file may or may not carry a live backend URL; tests always supply the mock
+const CONFIGURED = PAGE.replace(/const DEFAULT_URL = '[^']*';/, "const DEFAULT_URL = '" + API + "';");
 
 const fail = [], ok = [];
 const check = (n, c, x = '') => (c ? ok : fail).push(n + (x ? ' → ' + x : ''));
@@ -25,7 +27,8 @@ async function testAdmin() {
   const calls = [];
   let creds = { user: 'adminhuxley', pass: 'huxley2026' };
 
-  const dom = new JSDOM(PAGE, {
+  // the shipped page may have no backend configured; point it at the mock for the whole run
+  const dom = new JSDOM(CONFIGURED, {
     runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://huxleyjewelry.vercel.app/admin.html',
     beforeParse(w) {
       w.URL.createObjectURL = () => 'blob:x'; w.URL.revokeObjectURL = () => {};
@@ -201,7 +204,7 @@ async function testUrlFieldFallbacks() {
     /hide/i.test(d1.window.document.querySelector('#toggleUrl').textContent));
 
   // (b) connection fails -> reveal it so it can be corrected
-  const d2 = new JSDOM(PAGE, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/admin.html',
+  const d2 = new JSDOM(CONFIGURED, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/admin.html',
     beforeParse(w) { w.fetch = async () => { throw new Error('Failed to fetch'); }; } });
   await new Promise(r => setTimeout(r, 150));
   const w2 = d2.window, doc2 = d2.window.document;
