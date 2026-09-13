@@ -13,7 +13,7 @@ Open `index.html`, scroll to the bottom, and look for the `SITE` block inside `<
 const SITE = {
   phoneDisplay : "0976 463 7003",
   phoneRaw     : "+639764637003",
-  email        : "huxleyjewelrycreations@gmail.com",
+  email        : "karenrborlongan@gmail.com",
   facebook     : "https://www.facebook.com/profile.php?id=61555388537341",
   address      : "Bulacan & Quezon City",
   hours        : "By appointment — message us anytime"
@@ -27,8 +27,9 @@ The `address` line is kept for the record only; it is not shown anywhere on the 
 neither is the email address as text. The email sits behind the **Send an email** button in
 the closing section, and is used as a fallback if a booking can never reach the sheet.
 
-> ⚠️ **Please confirm the email address.** You only gave me the phone number, so I used
-> `huxleyjewelrycreations@gmail.com` as a placeholder. Replace it with your real email (or create that one).
+The address in use is **`karenrborlongan@gmail.com`** — it sits behind the **Send an email** button
+and is also what the notification of a new booking goes to (see `SETUP-BACKEND.md`). To change
+it, edit the `SITE` block above **and** the `OWNER_EMAIL` script property in Apps Script.
 
 ---
 

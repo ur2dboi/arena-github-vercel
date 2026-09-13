@@ -14,7 +14,7 @@
  *  3. Project Settings ▸ Script properties ▸ add:
  *        ADMIN_USER      <your admin username>
  *        ADMIN_PASSWORD  <your admin password>
- *        OWNER_EMAIL     huxleyjewelrycreations@gmail.com
+ *        OWNER_EMAIL     karenrborlongan@gmail.com
  *        OWNER_PHONE     0976 463 7003
  *        SHOP_MAPS       <your Google Maps link>
  *     IMPORTANT: type the credentials only in Script properties. Never paste
@@ -42,7 +42,7 @@ var CONFIG = {
   SHEET_NAME     : 'Huxley Bookings',           // used only if SHEET_ID is blank
   ADMIN_USER     : 'adminhuxley',
   ADMIN_PASSWORD : '',                          // your admin password
-  OWNER_EMAIL    : '',                          // where new bookings are emailed
+  OWNER_EMAIL    : 'karenrborlongan@gmail.com',   // where new bookings are emailed
   OWNER_PHONE    : '0976 463 7003',             // shown in the client's email
   SHOP_MAPS      : ''                           // sent to the client when you confirm
 };

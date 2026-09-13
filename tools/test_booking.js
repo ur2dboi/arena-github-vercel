@@ -170,7 +170,7 @@ setTimeout(async () => {
   const url = win.__mailto || '';
   const decoded = decodeURIComponent(url);
   check('builds a mailto to the shop', url.startsWith('mailto:'), url.slice(0, 40));
-  check('mailto goes to the shop inbox', decoded.includes('huxleyjewelrycreations@gmail.com'));
+  check('mailto goes to the shop inbox', decoded.includes('karenrborlongan@gmail.com'));
   check('mailto includes the date', decoded.includes(String(tomorrow.getFullYear())));
   check('mailto includes the time', decoded.includes(free2.dataset.slot));
   check('mailto includes full name', decoded.includes("Client's full name:  Maria Santos"));
