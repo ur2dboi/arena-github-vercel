@@ -17,6 +17,7 @@ if not re.match(r'^https://script\.google\.com/macros/s/[\w-]+/exec$', NEW):
 changed = []
 for path, pattern in [
     ('index.html', r"(  apiUrl\s*:\s*')[^']*(')"),
+    ('login.html', r"(const DEFAULT_URL = ')[^']*(';)"),
     ('admin.html', r"(const DEFAULT_URL = ')[^']*(';)"),
 ]:
     s = open(path).read()

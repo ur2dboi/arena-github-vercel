@@ -258,6 +258,13 @@ check('replying to the shop alert answers the client',
   mailSent[0].replyTo === 'ana@example.com', String(mailSent[0].replyTo));
 check('the shop alert is named after the website',
   /Huxley Jewelry Creations/.test(mailSent[0].name || ''), String(mailSent[0].name));
+check('the client email lists the downpayment accounts',
+  /BPI/i.test(mailSent[1].body) && /0759303628/.test(mailSent[1].body) &&
+  /GCash/i.test(mailSent[1].body) && /09764637003/.test(mailSent[1].body),
+  String(mailSent[1] && mailSent[1].body).slice(0, 160));
+check('the client email carries the shop maps link',
+  /google\.com\/maps/.test(String(mailSent[1] && mailSent[1].body)));
+if (process.env.DUMP_MAIL) console.log('\n----- sample client email -----\n' + mailSent[1].body + '\n-------------------------------\n');
 
 /* a booking can alert more than one inbox at once */
 (function () {
@@ -307,7 +314,9 @@ const id = list.appointments[0].id;
 r = post(auth({ op: 'status', id: id, status: 'Confirmed' }));
 check('confirming an appointment works', r.ok === true && r.appointments[0].status === 'Confirmed');
 check('confirmation emails the client the Google Maps location',
-  mailSent.some(m => m.to === 'ana@example.com' && /confirmed/i.test(m.subj)), mailSent.map(m => m.subj).join(' | '));
+  mailSent.some(m => m.to === 'ana@example.com' && /confirmed/i.test(m.subj) && /google\.com\/maps/.test(m.body)), mailSent.map(m => m.subj).join(' | '));
+check('confirmation repeats the downpayment accounts while the fee is unpaid',
+  mailSent.some(m => m.to === 'ana@example.com' && /confirmed/i.test(m.subj) && /0759303628/.test(m.body) && /09764637003/.test(m.body)));
 
 r = post(auth({ op: 'fee', id: id, fee: 'Paid' }));
 check('reservation fee can be marked paid', r.ok === true && r.appointments[0].fee === 'Paid');

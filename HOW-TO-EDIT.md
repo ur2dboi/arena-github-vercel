@@ -250,9 +250,20 @@ Once `apiUrl` is set (see **SETUP-BACKEND.md**), everything below still applies,
 
 - appointments are **saved in your Google Sheet** and the slot closes for everyone instantly
 - you manage it all from the dashboard at **`/admin`** — confirm, cancel, mark the ₱1,000 fee (that is what makes it count in **Fees collected**), block slots, close days, export CSV
-- **Confirm** automatically emails the client your Google Maps link (set `SHOP_MAPS` in the script properties)
+- **Confirm** automatically emails the client your Google Maps link and, while the ₱1,000 fee is still unpaid, the downpayment accounts again (both set in the `CONFIG` block at the top of the backend file — see **Your maps link & payment accounts** below)
 - if the database is ever unreachable, the form **falls back to emailing you** so a booking is never lost
 
 ### What the client receives
 
-After sending, they see a confirmation summary of their appointment, a button to **add it to their calendar** (downloads an .ics file), a reminder about the ₱1,000 reservation fee, and your note that the Google Maps location comes with the confirmation.
+After sending, they see a confirmation summary of their appointment and a button to **add it to their calendar** (downloads an .ics file). The email they receive carries the **downpayment accounts** (BPI / GCash) so they can send the ₱1,000 reservation fee straight away, the fee policy reminder, and your **Google Maps link**. When you press **Confirm**, the confirmation email repeats the maps link — and the payment accounts once more if their fee is still marked Unpaid.
+
+### Your maps link & payment accounts (downpayment)
+
+Both live in the `CONFIG` block at the top of `backend/Code.gs` (and your private `backend/huxley-setup.gs`):
+
+| Setting | What it does |
+|---|---|
+| `SHOP_MAPS` | The Google Maps link included in client emails. |
+| `PAYMENT` | The list of accounts where clients send the ₱1,000 fee. Add, remove or reorder rows freely — each row is `{ method : 'GCash', name : 'Karen Borlongan', number : '09764637003' }`. |
+
+Script properties `SHOP_MAPS` and `PAYMENT_DETAILS` (free text) override the file if you ever set them. After editing either file, paste it into Apps Script again and deploy a **new version** so the live backend picks the change up.

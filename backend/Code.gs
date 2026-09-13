@@ -44,7 +44,11 @@ var CONFIG = {
   ADMIN_PASSWORD : '',                          // your admin password
   OWNER_EMAIL    : 'karenrborlongan@gmail.com',   // where new bookings are emailed
   OWNER_PHONE    : '0976 463 7003',             // shown in the client's email
-  SHOP_MAPS      : ''                           // sent to the client when you confirm
+  SHOP_MAPS      : 'https://www.google.com/maps/place/Huxley+Jewelry+Creations/@15.1510188,120.6104447,17z/data=!3m1!4b1!4m6!3m5!1s0x3396f39002feaf3f:0x4089608e93a7e7a2!8m2!3d15.1510188!4d120.6104447!16s%2Fg%2F11zk6ynhh3!18m1!1e1?entry=ttu&g_ep=EgoyMDI2MDkwOS4wIKXMDSoASAFQAw%3D%3D',   // shop location, included in client emails
+  PAYMENT        : [                            // where clients send the ₱1,000 reservation fee
+    { method : 'BPI — bank transfer or deposit', name : 'Arnold Borlongan', number : '0759303628' },
+    { method : 'GCash',                          name : 'Karen Borlongan',  number : '09764637003' }
+  ]
 };
 
 var TZ            = Session.getScriptTimeZone();
@@ -170,7 +174,8 @@ function diagnose() {
   lines.push('Admin password: ' + ((prop_('ADMIN_PASSWORD') || prop_('ADMIN_HASH')) ? 'set' : 'NOT SET'));
   lines.push('OWNER_EMAIL: ' + (prop_('OWNER_EMAIL') || '(not set)'));
   lines.push('OWNER_PHONE: ' + (prop_('OWNER_PHONE') || '(not set)'));
-  lines.push('SHOP_MAPS: ' + (prop_('SHOP_MAPS') ? 'set' : '(not set)'));
+  lines.push('SHOP_MAPS: ' + ((prop_('SHOP_MAPS') || CONFIG.SHOP_MAPS) ? 'set' : '(not set)'));
+  lines.push('Payment accounts: ' + ((prop_('PAYMENT_DETAILS') || (CONFIG.PAYMENT || []).length) ? 'set' : '(not set)'));
   lines.push('Photo folder: ' + (prop_('PHOTO_FOLDER') || '(not created yet)'));
   var out = lines.join('\n');
   Logger.log(out);
@@ -337,6 +342,29 @@ function ownerEmails_() {
             .filter(function (s) { return s; });
 }
 
+/* ---------- shop maps link & downpayment accounts ----------
+   Script properties win over the CONFIG block, as everywhere else.
+   PAYMENT_DETAILS (free text) overrides the PAYMENT list if ever set. */
+function maps_() {
+  return String(prop_('SHOP_MAPS') || CONFIG.SHOP_MAPS || '').trim();
+}
+
+function paymentBlock_() {
+  var custom = String(prop_('PAYMENT_DETAILS') || '').trim();
+  if (custom) return custom;
+  var rows = CONFIG.PAYMENT || [];
+  if (!rows.length) return '';
+  var out = ['To secure your slot, please send the ₱' + FEE_AMOUNT.toLocaleString() +
+             ' reservation fee (downpayment) to either of these accounts:'];
+  for (var i = 0; i < rows.length; i++) {
+    out.push('', '   ' + rows[i].method,
+                 '   Account name:   ' + rows[i].name,
+                 '   Account number: ' + rows[i].number);
+  }
+  out.push('', 'After sending, please text or message us a screenshot or the reference number so we can mark your fee as paid.');
+  return out.join('\n');
+}
+
 function notify_(id, b, pax) {
   var owners = ownerEmails_();
   var owner = owners[0] || Session.getEffectiveUser().getEmail();
@@ -362,14 +390,21 @@ function notify_(id, b, pax) {
   } catch (e) {}
 
   try {
-    MailApp.sendEmail(b.email, 'We received your appointment request — Huxley Jewelry Creations', [
+    var pay  = paymentBlock_();
+    var maps = maps_();
+    var clientMail = [
       'Hi ' + String(b.name).split(' ')[0] + ',', '',
       'Thank you for booking with Huxley Jewelry Creations. We have received your appointment request:', '',
-      'Reference:   ' + id, 'Date:        ' + nice, 'Time:        ' + at, 'Person/s:    ' + pax, '',
-      'We will reply to confirm your slot. Your Google Maps location will be provided together with your appointment confirmation.', '',
-      'Reminder: a ₱1,000 reservation fee secures your appointment and is fully deducted from the total cost of your customized wedding ring should you proceed with the order. The fee is non-refundable for cancellation, rescheduling, non-appearance, or change of mind.', '',
-      'Maraming salamat!', 'Huxley Jewelry Creations', prop_('OWNER_PHONE') || '0976 463 7003'
-    ].join('\n'));
+      'Reference:   ' + id, 'Date:        ' + nice, 'Time:        ' + at, 'Person/s:    ' + pax, ''
+    ];
+    if (pay) clientMail.push(pay, '');
+    clientMail.push(
+      'We will reply to confirm your slot.', '',
+      'Reminder: a ₱1,000 reservation fee secures your appointment and is fully deducted from the total cost of your customized wedding ring should you proceed with the order. The fee is non-refundable for cancellation, rescheduling, non-appearance, or change of mind.', '');
+    if (maps) clientMail.push('📍 Find us on Google Maps: ' + maps, '');
+    clientMail.push('Maraming salamat!', 'Huxley Jewelry Creations', prop_('OWNER_PHONE') || '0976 463 7003');
+    MailApp.sendEmail(b.email, 'We received your appointment request — Huxley Jewelry Creations',
+      clientMail.join('\n'));
   } catch (e) {}
 }
 
@@ -514,7 +549,8 @@ function setStatus_(id, status) {
         'Date:       ' + nice_(r[2]) + '\n' +
         'Time:       ' + r[3] + '\n' +
         'Person/s:   ' + r[7] + '\n\n' +
-        '📍 Google Maps location: ' + (prop_('SHOP_MAPS') || '(add SHOP_MAPS in Script properties)') + '\n\n' +
+        '📍 Google Maps location: ' + (maps_() || '(add SHOP_MAPS in Script properties or the CONFIG block)') + '\n\n' +
+        (feeState_(r[10]) === 'Unpaid' && paymentBlock_() ? paymentBlock_() + '\n\n' : '') +
         'Please arrive on time — your slot is reserved exclusively for you.\n\n' +
         'See you soon,\nHuxley Jewelry Creations');
     } catch (e) {}
