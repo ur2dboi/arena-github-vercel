@@ -78,6 +78,12 @@ async function testAdmin() {
   check('[dash] the default tab is on screen and the others are not',
     onScreen('#tab-appts') && !onScreen('#tab-photos') && !onScreen('#tab-settings'));
 
+  const home = q('#homeBtn');
+  check('[dash] a Home button leads back to the website',
+    !!home && home.getAttribute('href') === '/', home ? home.getAttribute('href') : 'missing');
+  check('[dash] it opens in a new tab so the session stays put',
+    !!home && home.getAttribute('target') === '_blank' && /noopener/.test(home.getAttribute('rel') || ''));
+
   check('[dash] the dashboard never shows a password field', !q('#a-pass') && !q('#loginForm'));
   check('[dash] a session greeted the user by name', /adminhuxley/.test(q('#whoami').textContent), q('#whoami').textContent);
   check('[dash] the page did not bounce back to sign-in', !d.documentElement.getAttribute('data-leaving'),
@@ -238,6 +244,12 @@ async function testSite() {
   await new Promise(r => setTimeout(r, 400));
   const w = dom.window, d = w.document;
   const qa = s => [...d.querySelectorAll(s)];
+
+  // the owner's way in, from the site itself
+  const adminLink = qa('a[href="/login"]')[0];
+  check('[site] the footer offers an admin sign-in', !!adminLink, adminLink ? adminLink.textContent.trim() : 'no link found');
+  check('[site] that link keeps crawlers out of the admin', !!adminLink && adminLink.getAttribute('rel') === 'nofollow');
+  check('[site] it does not sit in the main menu', !qa('nav a[href="/login"]').length);
 
   check('[site] the site asks for photos on load', calls.some(u => /action=photos/.test(u)), calls.join(' | ').slice(0, 80));
   check('[site] hero photo swapped to the shop\'s own', qa('img[data-photo="hero"]')[0].getAttribute('src') === 'https://lh3.googleusercontent.com/d/HERO',

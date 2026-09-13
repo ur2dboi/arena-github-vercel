@@ -359,6 +359,10 @@ footer li a:hover{color:var(--gold)}
 footer p{font-size:.9rem;color:var(--ink-2)}
 .f-bottom{margin-top:44px;padding-top:22px;border-top:1px solid var(--gold-line-2);display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
 .f-bottom .star{width:12px;height:12px;vertical-align:-2px}
+/* staff way in — small, gold, out of the customer's way */
+.f-bottom a.f-admin{display:inline-flex;align-items:center;gap:8px;align-self:center;padding:9px 16px;border:1px solid var(--gold-line);border-radius:100px;color:var(--gold);background:rgba(255,255,255,.45);text-decoration:none;transition:.25s}
+.f-bottom a.f-admin:hover{background:var(--white);border-color:var(--gold);transform:translateY(-2px)}
+.f-bottom a.f-admin svg{width:13px;height:13px}
 
 /* ---------- floating call button ---------- */
 .call-fab{
@@ -1093,6 +1097,10 @@ footer p{font-size:.9rem;color:var(--ink-2)}
 
     <div class="f-bottom">
       <span>© <span id="yr">2026</span> Huxley Jewelry Creations. All rights reserved.</span>
+      <a class="f-admin" href="/login" rel="nofollow" title="Staff sign-in for the shop's dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>
+        Admin login
+      </a>
       <span><i class="star" data-star aria-hidden="true"></i> Handcrafted silver &amp; gold jewelry</span>
     </div>
   </div>
