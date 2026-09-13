@@ -176,10 +176,11 @@ async function testUrlFieldFallbacks() {
   const d1 = new JSDOM(blank, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/login.html',
     beforeParse(w) { w.fetch = async () => ({ ok: true, json: async () => ({ ok: false, error: 'nope' }) }); } });
   await new Promise(r => setTimeout(r, 150));
-  check('[fallback] field shows when no backend is configured',
+  check('[fallback] field shows when no backend is configured at all',
     d1.window.document.querySelector('#urlField').hidden === false);
-  check('[fallback] toggle says hide while it is open',
-    /hide/i.test(d1.window.document.querySelector('#toggleUrl').textContent));
+  check('[fallback] even then, no backend control is offered to the visitor',
+    !d1.window.document.querySelector('#toggleUrl') &&
+    !/backend settings/i.test(d1.window.document.body.textContent));
 
   // (b) connection fails -> reveal it so it can be corrected
   const d2 = new JSDOM(LOGIN_CFG, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/login.html',
@@ -191,10 +192,11 @@ async function testUrlFieldFallbacks() {
   doc2.querySelector('#a-pass').value = 'fixture-pass-1';
   doc2.querySelector('#loginForm').dispatchEvent(new w2.Event('submit', { bubbles: true, cancelable: true }));
   await new Promise(r => setTimeout(r, 200));
-  check('[fallback] a failed connection reveals the field',
-    doc2.querySelector('#urlField').hidden === false);
-  check('[fallback] the error points at the settings',
-    /Backend settings/i.test(doc2.querySelector('#loginErr').textContent), doc2.querySelector('#loginErr').textContent.slice(0, 70));
+  check('[fallback] a failed connection still keeps the address field out of sight',
+    doc2.querySelector('#urlField').hidden === true);
+  check('[fallback] it explains itself without naming any settings',
+    /could not reach the backend/i.test(doc2.querySelector('#loginErr').textContent) &&
+    !/backend settings/i.test(doc2.querySelector('#loginErr').textContent), doc2.querySelector('#loginErr').textContent.slice(0, 80));
 }
 
 /* ============================================================
@@ -293,7 +295,8 @@ async function testSignIn() {
     /\[hidden\]\s*\{\s*display\s*:\s*none\s*!important/.test(w1.document.head.innerHTML));
   check('[signin] the address field stays shut when the backend is known',
     q1('#urlField').hidden === true);
-  check('[signin] the backend address stays hidden', q1('#urlField').hidden === true && /backend settings/i.test(q1('#toggleUrl').textContent));
+  check('[signin] no backend settings control exists on the page',
+    q1('#urlField').hidden === true && !q1('#toggleUrl') && !/backend settings/i.test(w1.document.body.textContent));
   // no password may be written into the page — checked by shape, never by naming the real one
   const literalPass = /(pass|password|pwd)\s*[:=]\s*['"][^'"]{6,}['"]/i.test(LOGIN);
   check('[signin] no credentials are baked into the page', !/fixture-pass-1/.test(LOGIN) && !literalPass,

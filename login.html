@@ -152,9 +152,6 @@ tr.soon td{background:rgba(220,193,121,.10)}
     </div>
     <button class="btn btn-gold" type="submit" style="width:100%">Sign in</button>
     <p class="hint">Signed in from a shared computer? Close the tab when you are finished — your session ends with it.</p>
-    <p style="text-align:center;margin:16px 0 0">
-      <button type="button" class="linklike" id="toggleUrl" aria-expanded="false" aria-controls="urlField">Backend settings</button>
-    </p>
   </form>
 </div>
 
@@ -266,17 +263,15 @@ function leave(page) {
   document.documentElement.setAttribute('data-leaving', page);
   location.replace(page);
 }
-/* The backend URL is a deployment detail, not something the shop needs to see.
-   It stays tucked away unless there is genuinely no address to work with, or a
-   connection actually fails — then it appears with a nudge. */
-const urlField = $('#urlField'), toggleUrl = $('#toggleUrl');
+/* The backend URL is a deployment detail, not something the shop sees. There is no
+   control for it on this page: the address is built in (and remembered from a previous
+   successful sign-in). The field below only appears on a copy that has no address at
+   all, which would otherwise be impossible to set up. */
+const urlField = $('#urlField');
 function showUrlField(show) {
   urlField.hidden = !show;
-  toggleUrl.setAttribute('aria-expanded', String(show));
-  toggleUrl.textContent = show ? 'Hide backend settings' : 'Backend settings';
   if (show) $('#a-url').value = $('#a-url').value || DEFAULT_URL;
 }
-toggleUrl.addEventListener('click', () => showUrlField(urlField.hidden));
 if (!URL_) showUrlField(true);          // nothing to try if it is not configured
 
 $('#loginForm').addEventListener('submit', async e => {
@@ -311,9 +306,8 @@ $('#loginForm').addEventListener('submit', async e => {
     leave('/admin');
   } catch (ex) {
     const looksLikeAddress = /Failed to fetch|Network error/.test(ex.message);
-    if (looksLikeAddress) showUrlField(true);
     err.textContent = looksLikeAddress
-      ? 'Could not reach the backend. Check the address in Backend settings below, and that the Web App is deployed with access set to "Anyone".'
+      ? 'Could not reach the backend. Check the connection and tap "Reset connection" below to try again.'
       : ex.message;
     err.classList.add('show');
     const rst = $('#resetConn'); if (rst) { rst.hidden = false; $('#resetConnWrap').hidden = false; }
