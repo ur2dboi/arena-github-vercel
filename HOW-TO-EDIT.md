@@ -141,9 +141,7 @@ never see a stale picture.
 
 You do **not** need to edit any file to change the photos. Once the backend is connected:
 
-1. Open **`your-site.com/login`** and sign in — you land on the dashboard at `/admin`. The page shows the last list it fetched the instant it opens and refreshes itself a moment later, so a booking taken on another device can appear a second or two after you open the portal.
-   
-   (Original line below, kept for reference.)
+1. Open **`your-site.com/login`** and sign in — you land on the dashboard at `/admin`. It shows the last list it fetched the moment it opens, then refreshes itself a second later, so a booking taken on another device can take a moment to appear.
 2. Go to the **Website photos** tab
 3. Find the slot (Homepage hero, Wedding & engagement rings, Pendants, …)
 4. Press **Upload photo** and pick an image — or paste a link and press **Save**
