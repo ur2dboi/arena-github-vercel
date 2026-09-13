@@ -141,12 +141,12 @@ In the portal go to **Settings** → change the username and/or password → **S
 2. They fill in the form and send. The booking is **saved as a row in your Google Sheet**, the slot closes for everyone instantly, and the server re-checks the slot under a lock so two people can never take the same time.
 3. **You get an email** with all the details; **they get an email** acknowledging the request and the ₱1,000 policy.
 4. You open the portal on your phone and press **Confirm** — they instantly receive a confirmation email with your **Google Maps location** (from `SHOP_MAPS`).
-5. Use **Done** when the appointment is finished, **Cancel** if it falls through, and **Fee paid → Deducted** to track the ₱1,000 against the ring order.
+5. Use **Done** when the appointment is finished, **Cancel** if it falls through, and **Fee paid → Deducted** to track the ₱1,000 against the ring order. **Fees collected** adds ₱1,000 per booking only once you press **Fee paid** (a fee marked **Deducted** still counts — that money was received).
 
 ### Admin portal features
 
 **Appointments tab**
-- **Stats**: today, upcoming, pending, confirmed, total, fees collected
+- **Stats**: today, upcoming, pending, confirmed, total, fees collected — counted from the fee column, so unpaid bookings read ₱0
 - **List** with search (name / phone / email / reference) and filters (status, today / upcoming / past / everything)
 - **One-tap** Confirm · Done · Cancel · Fee paid · Deducted
 - **Block a slot or close a whole day** — the public calendar obeys instantly, no code editing

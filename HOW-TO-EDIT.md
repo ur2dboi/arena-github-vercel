@@ -248,7 +248,7 @@ This is a **request-and-confirm** system that needs no server and no monthly fee
 Once `apiUrl` is set (see **SETUP-BACKEND.md**), everything below still applies, plus:
 
 - appointments are **saved in your Google Sheet** and the slot closes for everyone instantly
-- you manage it all from the dashboard at **`/admin`** — confirm, cancel, mark the ₱1,000 fee, block slots, close days, export CSV
+- you manage it all from the dashboard at **`/admin`** — confirm, cancel, mark the ₱1,000 fee (that is what makes it count in **Fees collected**), block slots, close days, export CSV
 - **Confirm** automatically emails the client your Google Maps link (set `SHOP_MAPS` in the script properties)
 - if the database is ever unreachable, the form **falls back to emailing you** so a booking is never lost
 

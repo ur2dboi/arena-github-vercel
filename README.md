@@ -42,7 +42,7 @@ maintain — plain HTML, CSS and JavaScript.
 **Admin** — a sign-in page (`/login`) and the dashboard (`/admin`), username + password verified server-side
 - Stats: today, upcoming, pending, confirmed, total, fees collected
 - Search and filter every appointment; one-tap Confirm · Done · Cancel
-- Track the ₱1,000 reservation fee: Unpaid → Paid → Deducted
+- Track the ₱1,000 reservation fee: Unpaid → Paid → Deducted. **Fees collected** only counts the fees you actually marked paid — unpaid bookings stay at ₱0
 - Block a slot or close a whole day — the public calendar updates instantly
 - Export to CSV; auto-refreshes; works on a phone ("Add to Home Screen")
 - **Website photos**: upload or link a new photo for any of the nine slots, or reset it

@@ -46,7 +46,8 @@ async function testAdmin() {
         const bad = b.user !== creds.user || b.password !== creds.pass;
         if (b.op !== 'changePass' && bad) return { ok: true, json: async () => ({ ok: false, error: 'Wrong username or password' }) };
         switch (b.op) {
-          case 'list':       return { ok: true, json: async () => ({ ok: true, appointments: rows, blocks: [], stats: { total: 1, pending: 1, revenue: 0 }, photos, user: creds.user }) };
+          // stats deliberately mirror the old backend, which counted an Unpaid booking as ₱1,000
+          case 'list':       return { ok: true, json: async () => ({ ok: true, appointments: rows, blocks: [], stats: { total: 1, pending: 1, revenue: 1000 }, photos, user: creds.user }) };
           case 'savePhoto':  return { ok: true, json: async () => ({ ok: true, photos: Object.assign({}, photos, { [b.slot]: { url: 'https://lh3.googleusercontent.com/d/NEW' } }), message: 'Photo updated.' }) };
           case 'setPhotoUrl':return { ok: true, json: async () => ({ ok: true, photos: Object.assign({}, photos, { [b.slot]: { url: b.url } }), message: 'Photo link saved.' }) };
           case 'resetPhoto': { const p = Object.assign({}, photos); delete p[b.slot]; return { ok: true, json: async () => ({ ok: true, photos: p, message: 'Original photo restored.' }) }; }
@@ -92,6 +93,36 @@ async function testAdmin() {
     w.localStorage.getItem('huxley_api') === API && !w.localStorage.getItem('huxley_pass') && w.sessionStorage.getItem('huxley_pass') === 'fixture-pass-1');
   check('[dash] it loaded the appointments without being asked twice',
     /Ana Reyes/.test(q('#rows').textContent), q('#rows').textContent.slice(0, 40));
+
+  // ---- reservation fees: only money the shop actually took ----
+  const statN = k => qa('#stats .stat').find(el => el.querySelector('.k').textContent.trim() === k).querySelector('.n').textContent;
+  const pills = () => qa('#rows tr .pill');
+  const feeBtns = () => qa('#rows button[data-act="fee"]');
+  const feeBtn = v => feeBtns().find(b => b.dataset.val === v);
+  const refresh = async () => { q('#refreshBtn').dispatchEvent(new w.MouseEvent('click', { bubbles: true })); await new Promise(r => setTimeout(r, 250)); };
+
+  check('[fees] nothing collected while the booking is unpaid, whatever the server says',
+    statN('Fees collected') === '₱0', statN('Fees collected') + ' (stub stats claim ₱1,000)');
+  check('[fees] the fee cell is badged Unpaid', /f-Unpaid/.test(pills()[1].className) && pills()[1].textContent.trim() === 'Unpaid',
+    pills()[1].className + ' → ' + pills()[1].textContent.trim());
+  check('[fees] the shop can mark it paid', !!feeBtn('Paid') && /Fee paid/.test(feeBtn('Paid').textContent),
+    feeBtns().map(b => b.textContent).join(' | '));
+  check('[fees] no Deducted shortcut before it is paid', !feeBtn('Deducted'));
+
+  rows[0].fee = 'Paid';
+  await refresh();
+  check('[fees] a paid fee counts as ₱1,000 collected', statN('Fees collected') === '₱1,000', statN('Fees collected'));
+  check('[fees] a paid row turns Paid and offers Deducted',
+    /f-Paid/.test(pills()[1].className) && !!feeBtn('Deducted') && !!feeBtn('Unpaid'), pills()[1].className);
+
+  rows[0].fee = 'Deducted';
+  await refresh();
+  check('[fees] a deducted fee still counts — the money was taken',
+    statN('Fees collected') === '₱1,000' && /f-Deducted/.test(pills()[1].className), statN('Fees collected') + ' ' + pills()[1].className);
+
+  rows[0].fee = 'Unpaid';
+  await refresh();
+  check('[fees] back to ₱0 once the fee is unmarked', statN('Fees collected') === '₱0', statN('Fees collected'));
 
   // tabs
   const tabs = qa('.tabs button').map(b => b.dataset.tab);

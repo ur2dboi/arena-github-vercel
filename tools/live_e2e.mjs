@@ -71,7 +71,29 @@ if (!PASS) {
   const again = await post({ action: 'book', date, time: '3:00 PM', name: 'ZZ Test Duplicate', phone: '09990000001', email: 'test2@example.com', pax: 1, agree: true });
   ok('the same slot cannot be booked twice', again.ok === false, again.error || '');
 
-  // 5. clean up
+  // 5. the rest of the portal's daily tools
+  const iso = n => { const x = new Date(); x.setDate(x.getDate() + n); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+  const closedDay = iso(60);
+  const blk = await post({ action: 'admin', op: 'block', user: USER, password: PASS, date: closedDay, time: 'ALL', reason: 'automated check' });
+  ok('a day can be closed from the portal', blk.ok === true, blk.error || closedDay);
+  const av2 = await get('?action=availability');
+  ok('the closed day stops being offered', (av2.closed || []).includes(closedDay), JSON.stringify(av2.closed || []).slice(0, 90));
+  const unb = await post({ action: 'admin', op: 'unblock', user: USER, password: PASS, date: closedDay, time: 'ALL' });
+  ok('the block can be lifted again', unb.ok === true && !(unb.blocks || []).some(b => b.date === closedDay), unb.error || '');
+
+  const rst = await post({ action: 'admin', op: 'resetPhoto', user: USER, password: PASS, slot: 'workshop' });
+  ok('the photo manager answers the portal', rst.ok === true && !!rst.photos, rst.error || Object.keys(rst.photos || {}).length + ' custom photo(s) in use');
+
+  if (book.ok && book.id) {
+    const paid = await post({ action: 'admin', op: 'fee', user: USER, password: PASS, id: book.id, fee: 'Paid' });
+    const rowP = (paid.appointments || []).find(a => a.id === book.id) || {};
+    ok('a reservation fee can be marked paid', paid.ok === true && rowP.fee === 'Paid', rowP.fee || paid.error || '');
+    const back = await post({ action: 'admin', op: 'fee', user: USER, password: PASS, id: book.id, fee: 'Unpaid' });
+    const rowU = (back.appointments || []).find(a => a.id === book.id) || {};
+    ok('and marked unpaid again', back.ok === true && rowU.fee === 'Unpaid', rowU.fee || back.error || '');
+  }
+
+  // 6. clean up
   if (book.ok && book.id) {
     const del = await post({ action: 'admin', op: 'delete', user: USER, password: PASS, id: book.id });
     ok('the test booking is removed again', del.ok === true, del.error || book.id + ' deleted');

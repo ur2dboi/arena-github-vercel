@@ -71,7 +71,7 @@ Supabase is the better *technology* and I'm happy to build it — but the 7-day 
 - **Login** — password-protected, nobody else can reach it.
 - **Appointment list** — newest first, filter by *Pending / Confirmed / Completed / Cancelled*.
 - **Today & upcoming view** — what's on your bench today, at a glance.
-- **One-tap actions** — Confirm (sends the customer their confirmation + Google Maps location), Cancel, Mark the ₱1,000 reservation fee as **Paid / Deducted**.
+- **One-tap actions** — Confirm (sends the customer their confirmation + Google Maps location), Cancel, Mark the ₱1,000 reservation fee as **Paid / Deducted**. Only fees you marked count in **Fees collected** — an untouched booking never adds ₱1,000.
 - **Search** by name, phone, or email — for "sino 'yung tumawag kahapon?"
 - **Live availability** — you can **block a slot** or **close a whole day** right from the portal, and the public calendar updates instantly. No more editing code.
 - **Export to CSV/Excel** — for your records or bookkeeping.

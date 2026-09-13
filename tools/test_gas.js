@@ -270,6 +270,27 @@ r = post(auth({ op: 'fee', id: id, fee: 'Paid' }));
 check('reservation fee can be marked paid', r.ok === true && r.appointments[0].fee === 'Paid');
 check('paid fees roll into the stats', r.stats.revenue === 1000, String(r.stats.revenue));
 
+/* /Paid/i also matches "Unpaid", which made every untouched booking look paid */
+r = post(auth({ op: 'fee', id: id, fee: 'Unpaid' }));
+check('an unpaid fee is not money collected', r.ok === true && r.stats.revenue === 0, String(r.stats.revenue));
+r = post(auth({ op: 'fee', id: id, fee: 'Deducted' }));
+check('a deducted fee still counts as collected', r.stats.revenue === 1000, String(r.stats.revenue));
+r = post(auth({ op: 'fee', id: id, fee: 'paid' }));
+check('a lowercase fee value is stored canonically', r.appointments[0].fee === 'Paid' && r.stats.revenue === 1000, String(r.appointments[0].fee));
+r = post(auth({ op: 'fee', id: id, fee: 'Done' }));
+check('an unknown fee value is refused', r.ok === false && /Unknown reservation fee/.test(r.error), r.error);
+
+/* several bookings, one paid: the count must not grow with unpaid rows */
+(function () {
+  const sh = SHEETS['Appointments'], saved = sh.rows.slice();
+  sh.rows.push(['HX-UNPAID-1', '2026-09-13 11:00', '2026-12-30', '12:00 NN', 'Cara Lim', '0917 000 0001', 'cara@example.com', 1, '', 'Pending', 'Unpaid', '', '']);
+  sh.rows.push(['HX-UNPAID-2', '2026-09-13 11:30', '2026-12-30', '1:00 PM', 'Dan Sy', '0917 000 0002', 'dan@example.com', 1, '', 'Pending', 'Unpaid', '', '']);
+  const out = post(auth({ op: 'list' }));
+  check('unpaid bookings never inflate Fees collected', out.stats.revenue === 1000,
+    out.stats.revenue + ' across ' + out.appointments.length + ' bookings, only 1 paid');
+  sh.rows = saved;
+})();
+
 r = post(auth({ op: 'block', date: d(7), time: 'ALL', reason: 'Holiday' }));
 check('a whole day can be closed', r.ok === true && r.blocks.length === 1);
 r = json(run('doGet', { parameter: { action: 'availability' } }));

@@ -203,7 +203,7 @@ tr.soon td{background:rgba(220,193,121,.10)}
         <div class="mini">
           <h3>How this works</h3>
           <p style="font-size:.88rem;color:var(--ink-2)">Confirmed and pending appointments are hidden from clients automatically. Use the blockers on the left only for time you are unavailable for other reasons.</p>
-          <p style="font-size:.88rem;color:var(--ink-2);margin-bottom:0">Marking the reservation fee <strong>Paid</strong> records the ₱1,000. Use <strong>Deducted</strong> once it has been applied to a finished ring order.</p>
+          <p style="font-size:.88rem;color:var(--ink-2);margin-bottom:0">Marking the reservation fee <strong>Paid</strong> is what records the ₱1,000 in <strong>Fees collected</strong>. Use <strong>Deducted</strong> once it has been applied to a finished ring order. Bookings you have not collected from yet stay at ₱0.</p>
         </div>
       </div>
     </section>
@@ -406,11 +406,29 @@ function applyData(out) {
   renderStats(); renderRows(); renderBlocks(); renderPhotos();
 }
 
+/* The reservation fee. Only a fee the shop explicitly marked Paid — or
+   Deducted, once it has been applied to the ring order — is money collected.
+   A booking nobody has paid for must never be counted. Never test the raw cell
+   with /Paid/i: that also matches "Unpaid". */
+const FEE_AMOUNT = 1000;
+
+function feeState(f) {
+  const k = String(f == null ? '' : f).trim().toLowerCase();
+  if (k === 'paid')     return 'Paid';
+  if (k === 'deducted') return 'Deducted';
+  return 'Unpaid';
+}
+
+/* counted from the rows on screen, so it is right the moment a fee is marked */
+function feesCollected(list) {
+  return (list || []).filter(a => feeState(a.fee) !== 'Unpaid').length * FEE_AMOUNT;
+}
+
 function renderStats() {
   const s = DATA.stats || {};
   const cards = [
     ['Today', s.today || 0], ['Upcoming', s.upcoming || 0], ['Pending', s.pending || 0],
-    ['Confirmed', s.confirmed || 0], ['Total', s.total || 0], ['Fees collected', '₱' + (s.revenue || 0).toLocaleString()]
+    ['Confirmed', s.confirmed || 0], ['Total', s.total || 0], ['Fees collected', '₱' + feesCollected(DATA.appointments).toLocaleString()]
   ];
   $('#stats').innerHTML = cards.map(c => '<div class="stat"><div class="n">' + esc(c[1]) + '</div><div class="k">' + esc(c[0]) + '</div></div>').join('');
 }
@@ -446,8 +464,9 @@ function renderRows() {
 
   $('#rows').innerHTML = list.map(a => {
     const soon = a.date === today;
-    const feeCls = /Paid/i.test(a.fee) ? 'f-Paid' : /Deduct/i.test(a.fee) ? 'f-Deducted' : 'f-Unpaid';
-    const paid = /Paid/i.test(a.fee);
+    const fs = feeState(a.fee);
+    const feeCls = 'f-' + fs;
+    const paid = fs !== 'Unpaid';
     return '<tr class="' + (soon ? 'soon' : '') + '" data-id="' + esc(a.id) + '">' +
       '<td class="when">' + esc(niceDay(a.date)) + '<small>' + esc(a.time) + (soon ? ' · Today' : '') + '</small></td>' +
       '<td class="who-cell"><b>' + esc(a.name) + '</b>' +
@@ -457,13 +476,13 @@ function renderRows() {
       '<td class="notes">' + (esc(a.notes) || '<span style="color:var(--muted)">—</span>') +
         (a.shopNote ? '<div style="margin-top:6px;color:var(--gold)">Note: ' + esc(a.shopNote) + '</div>' : '') + '</td>' +
       '<td><span class="pill p-' + esc(a.status) + '">' + esc(a.status) + '</span></td>' +
-      '<td><span class="pill ' + feeCls + '">' + esc(a.fee) + '</span></td>' +
+      '<td><span class="pill ' + feeCls + '">' + esc(fs) + '</span></td>' +
       '<td><div class="acts">' +
         (a.status !== 'Confirmed' ? '<button class="btn btn-gold btn-sm" data-act="status" data-val="Confirmed">Confirm</button>' : '') +
         (a.status !== 'Completed' ? '<button class="btn btn-ghost btn-sm" data-act="status" data-val="Completed">Done</button>' : '') +
         (a.status !== 'Cancelled' ? '<button class="btn btn-ghost btn-sm" data-act="status" data-val="Cancelled">Cancel</button>' : '') +
         '<button class="btn btn-ghost btn-sm" data-act="fee" data-val="' + (paid ? 'Unpaid' : 'Paid') + '">' + (paid ? 'Fee unpaid' : 'Fee paid') + '</button>' +
-        (paid ? '<button class="btn btn-ghost btn-sm" data-act="fee" data-val="Deducted">Deducted</button>' : '') +
+        (fs === 'Paid' ? '<button class="btn btn-ghost btn-sm" data-act="fee" data-val="Deducted">Deducted</button>' : '') +
       '</div></td></tr>';
   }).join('');
 }

@@ -422,7 +422,7 @@ function list_() {
       row: i, id: r[0],
       submitted: r[1] ? Utilities.formatDate(new Date(r[1]), TZ, 'yyyy-MM-dd HH:mm') : '',
       date: ymd_(r[2]), time: slot_(r[3]), name: r[4], phone: phoneText_(r[5]), email: r[6], pax: r[7],
-      notes: r[8], status: r[9] || 'Pending', fee: r[10] || 'Unpaid',
+      notes: r[8], status: r[9] || 'Pending', fee: feeState_(r[10]),
       confirmedAt: r[11] ? Utilities.formatDate(new Date(r[11]), TZ, 'yyyy-MM-dd HH:mm') : '',
       shopNote: r[12] || ''
     });
@@ -438,6 +438,23 @@ function blocks_() {
   return out;
 }
 
+/* The reservation fee. Only a fee the shop explicitly marked Paid — or
+   Deducted, once it has been applied to the ring order — is money collected.
+   A booking that still says "Unpaid" must never be counted. Never test the raw
+   cell with /Paid/i: that also matches "Unpaid". */
+var FEE_AMOUNT = 1000;
+
+function feeState_(fee) {
+  var f = String(fee == null ? '' : fee).trim().toLowerCase();
+  if (f === 'paid')     return 'Paid';
+  if (f === 'deducted') return 'Deducted';
+  return 'Unpaid';
+}
+
+function feeCollected_(fee) {
+  return feeState_(fee) !== 'Unpaid';
+}
+
 function stats_() {
   var a = list_();
   var today = Utilities.formatDate(new Date(), TZ, 'yyyy-MM-dd');
@@ -448,7 +465,7 @@ function stats_() {
     if (x.status === 'Cancelled') s.cancelled++;
     if (x.date === today && x.status !== 'Cancelled') s.today++;
     if (x.date >= today && x.status === 'Confirmed') s.upcoming++;
-    if (/Paid/i.test(x.fee)) s.revenue += 1000;
+    if (feeCollected_(x.fee)) s.revenue += FEE_AMOUNT;
   });
   return s;
 }
@@ -487,8 +504,13 @@ function setStatus_(id, status) {
 function setFee_(id, fee) {
   var row = rowOf_(id);
   if (row < 0) return { ok: false, error: 'Not found' };
-  sheet_(SHEET_APPTS).getRange(row, 11).setValue(fee);
-  log_('admin', 'Fee ' + id + ' → ' + fee);
+  var want  = String(fee == null ? '' : fee).trim();
+  var canon = feeState_(want);
+  if (want.toLowerCase() !== canon.toLowerCase()) {
+    return { ok: false, error: 'Unknown reservation fee: ' + want };
+  }
+  sheet_(SHEET_APPTS).getRange(row, 11).setValue(canon);
+  log_('admin', 'Fee ' + id + ' → ' + canon);
   return { ok: true, appointments: list_(), stats: stats_() };
 }
 
