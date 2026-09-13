@@ -51,6 +51,35 @@ setTimeout(async () => {
   check('the footer star stays small', !!fStar && win.getComputedStyle(fStar).width === '12px',
     fStar ? win.getComputedStyle(fStar).width : 'missing');
 
+  // ---------- 0b. gallery slideshow ----------
+  const gbox = doc.querySelector('[data-slideshow]');
+  check('the gallery is on the page', !!gbox);
+  const gSlides = gbox ? [...gbox.querySelectorAll('.slide')] : [];
+  const gDots = gbox ? [...gbox.querySelectorAll('.slides-dot')] : [];
+  check('it holds more than one photo', gSlides.length >= 2, gSlides.length + ' slides');
+  check('there is one dot per photo', gDots.length === gSlides.length, gDots.length + ' dots');
+  check('every photo has a description', gSlides.every(s => s.querySelector('img').getAttribute('alt')));
+  check('every photo states its size (no jumping as they load)',
+    gSlides.every(s => s.querySelector('img').getAttribute('width') && s.querySelector('img').getAttribute('height')));
+  if (gbox && gSlides.length > 1) {
+    const gTrack = gbox.querySelector('.slides-track');
+    const gNow = () => gbox.querySelector('[data-slide-now]').textContent;
+    const gClick = el => el.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+    gClick(gbox.querySelector('.slides-nav.next'));
+    check('next moves one photo on', gTrack.style.transform === 'translateX(-100%)' && gNow() === '2',
+      gTrack.style.transform + ' / ' + gNow());
+    gClick(gbox.querySelector('.slides-nav.prev'));
+    check('prev steps back', gTrack.style.transform === 'translateX(0%)' && gNow() === '1',
+      gTrack.style.transform + ' / ' + gNow());
+    gClick(gbox.querySelector('.slides-nav.prev'));
+    check('prev from the first photo wraps round to the last', gNow() === String(gSlides.length), gNow());
+    const jump = Math.min(3, gSlides.length - 1);
+    gClick(gDots[jump]);
+    check('a dot jumps straight to its photo',
+      gTrack.style.transform === 'translateX(-' + jump * 100 + '%)' && gNow() === String(jump + 1),
+      gTrack.style.transform + ' / ' + gNow());
+  }
+
   // ---------- 1. calendar ----------
   const cells = $$('#calGrid .cal-day');
   check('calendar rendered', cells.length > 27, cells.length + ' cells');

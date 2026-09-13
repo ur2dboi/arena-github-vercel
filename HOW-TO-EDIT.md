@@ -54,8 +54,9 @@ All text is plain HTML in `index.html`. Section order:
 5. Our Craft
 6. How to Order (4 steps)
 7. Start an Order (contact card — phone, ordering, Facebook)
-8. FAQ
-9. CTA band + footer
+8. Gallery (photo slideshow)
+9. FAQ
+10. CTA band + footer
 
 Search for a phrase you want to change, edit the text, save.
 
@@ -73,7 +74,7 @@ people three direct routes instead:
 Customers book appointments with the booking form further up the page; that booking goes
 into your Google Sheet and shows up in the admin dashboard.
 
-To change the phone number or location, edit the text inside that card in `index.html`
+To change the phone number, edit the text inside that card in `index.html`
 (search for "Start an Order"). The same phone number also lives in the header button, the
 contact links and the booking section — search for `09764637003` and replace every hit.
 
@@ -82,7 +83,31 @@ your Sheet (like the bookings do), so nothing depends on the customer's own mail
 
 ---
 
-## 5. Fonts & colours
+## 5. The gallery slideshow
+
+The gallery sits between "Start an Order" and the FAQ. It shows one photo at a time with
+arrows, dots and a photo counter; on a phone you can swipe through it, and it moves on by
+itself every six seconds until someone touches it.
+
+**To add or swap photos:**
+
+1. Put the photo files in `assets/raw/gallery/` (that folder is not published — it is only
+   where you drop the originals).
+2. Run one command: `python3 tools/build_gallery.py`
+3. The site rebuilds itself: photos are resized for the web, written to
+   `assets/img/gallery/`, and the slides in `index.html` are rewritten.
+
+Order is alphabetical by filename, so name them `01-…`, `02-…` if you want to choose what
+comes first. For captions, add a `captions.txt` in the same folder — one caption per line,
+in the same order as the photos; without it the filename is used.
+
+Any mix of sizes and shapes works (upright or wide phone photos are both fine) — nothing is
+cropped, and every photo is centred in the frame. Around 1600 pixels on the long edge is
+plenty; the tool shrinks anything bigger.
+
+---
+
+## 6. Fonts & colours
 
 - Headings: **Cormorant Garamond** (elegant serif). Body/UI: **Jost** (clean geometric sans).
   They load from Google Fonts. Without internet the page falls back to fine system fonts — nothing breaks.
@@ -94,7 +119,7 @@ your Sheet (like the bookings do), so nothing depends on the customer's own mail
 
 ---
 
-## 6. Photos — change them from the admin portal
+## 7. Photos — change them from the admin portal
 
 You do **not** need to edit any file to change the photos. Once the backend is connected:
 
@@ -110,7 +135,11 @@ If you ever want to change the *built-in* photos instead (the ones shown before 
 
 ---
 
-## 7. Logo files
+**Not the gallery.** The Photos tab manages the nine pictures described above. The
+gallery slideshow is separate — swap those photos with `tools/build_gallery.py`
+(see section 5).
+
+## 8. Logo files
 
 Your logo image has been cleaned up into a transparent version, so it sits perfectly on the cream background with no cream box around it:
 
@@ -130,7 +159,7 @@ To change the logo later, drop a new transparent PNG in at `assets/img/logo-lock
 
 ---
 
-## 8. The appointment booking system
+## 9. The appointment booking system
 
 Clients pick a date on the calendar, pick a time slot, fill in their details, read the Appointment Policy, tick the box, and send. The request arrives in your inbox as an email, and you reply to confirm (sending the Google Maps location with the confirmation).
 

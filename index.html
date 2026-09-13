@@ -444,6 +444,43 @@ footer p{font-size:.9rem;color:var(--ink-2)}
   html{scroll-behavior:auto}
 }
 
+/* ---------- gallery ---------- */
+.slides{margin-top:clamp(22px,3.4vw,40px)}
+.slides-stage{position:relative;height:clamp(280px,44vw,560px);overflow:hidden;border-radius:var(--radius);
+  background:var(--white);border:1px solid var(--gold-line-2);box-shadow:var(--shadow);
+  touch-action:pan-y;cursor:grab}
+.slides-stage:active{cursor:grabbing}
+.slides-stage:focus-visible{outline:2px solid var(--gold-2);outline-offset:3px}
+.slides-track{display:flex;height:100%;transition:transform .55s cubic-bezier(.22,.61,.36,1);will-change:transform}
+.slides-track.dragging{transition:none}
+.slide{flex:0 0 100%;min-width:0;height:100%;margin:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;padding:clamp(10px,1.7vw,22px)}
+.slide img{max-width:100%;max-height:calc(100% - 34px);width:auto;height:auto;object-fit:contain;
+  border-radius:8px;user-select:none;-webkit-user-drag:none}
+.slide figcaption{margin-top:11px;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--muted);text-align:center}
+.slides-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:44px;
+  display:grid;place-items:center;border-radius:50%;border:1px solid var(--gold-line);
+  background:rgba(255,253,246,.92);color:var(--gold);cursor:pointer;transition:background .2s,transform .2s}
+.slides-nav:hover{background:var(--white);transform:translateY(-50%) scale(1.05)}
+.slides-nav svg{width:18px;height:18px}
+.slides-nav.prev{left:clamp(8px,1.4vw,16px)}
+.slides-nav.next{right:clamp(8px,1.4vw,16px)}
+.slides-foot{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:16px}
+.slides-count{margin:0;font-size:.68rem;letter-spacing:.2em;color:var(--muted)}
+.slides-dots{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
+.slides-dot{width:9px;height:9px;padding:0;border-radius:50%;cursor:pointer;
+  border:1px solid var(--gold-2);background:transparent;transition:background .2s,transform .2s}
+.slides-dot:hover{transform:scale(1.25)}
+.slides-dot[aria-current="true"]{background:var(--gold-2)}
+@media (max-width:760px){
+  .slides-stage{height:clamp(230px,60vw,360px)}
+  .slides-nav{width:38px;height:38px}
+  .slide{padding:10px}
+  .slide figcaption{font-size:.62rem;letter-spacing:.16em}
+  .slides-foot{gap:14px;margin-top:14px}
+}
+
 /* ---------- responsive ---------- */
 @media (max-width:1024px){
   .grid{grid-template-columns:repeat(2,1fr)}
@@ -494,6 +531,7 @@ footer p{font-size:.9rem;color:var(--ink-2)}
       <ul class="menu">
         <li><a href="#collections">Collections</a></li>
         <li><a href="#craft">Our Craft</a></li>
+        <li><a href="#gallery">Gallery</a></li>
         <li><a href="#appointment">Book Appointment</a></li>
         <li><a href="#faq">FAQ</a></li>
         <li><a href="#contact">Contact</a></li>
@@ -873,6 +911,74 @@ footer p{font-size:.9rem;color:var(--ink-2)}
         </div>
       </div>
 
+    </div>
+  </div>
+</section>
+
+<!-- ============ GALLERY ============ -->
+<section class="sec" id="gallery">
+  <div class="wrap">
+    <div class="head rv">
+      <p class="eyebrow center">Gallery</p>
+      <h2>Straight from the bench</h2>
+      <div class="divider"><span></span><i class="star" data-star></i><span></span></div>
+    </div>
+
+    <div class="slides rv" data-slideshow>
+      <div class="slides-stage" tabindex="0" role="region" aria-roledescription="carousel"
+           aria-label="Photos of finished Huxley pieces">
+        <noscript><style>.slides-track{overflow-x:auto}</style></noscript>
+        <div class="slides-track">
+<!-- gallery-slides:start -->
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="1 of 9">
+          <img src="assets/img/gallery/g-01.jpg" alt="Wedding & engagement rings" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Wedding & engagement rings</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="2 of 9">
+          <img src="assets/img/gallery/g-02.jpg" alt="College rings" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
+          <figcaption>College rings</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="3 of 9">
+          <img src="assets/img/gallery/g-03.jpg" alt="Pendants" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Pendants</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="4 of 9">
+          <img src="assets/img/gallery/g-04.jpg" alt="Earrings" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Earrings</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="5 of 9">
+          <img src="assets/img/gallery/g-05.jpg" alt="Bangles" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Bangles</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="6 of 9">
+          <img src="assets/img/gallery/g-06.jpg" alt="Bracelets" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Bracelets</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="7 of 9">
+          <img src="assets/img/gallery/g-07.jpg" alt="Chains" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Chains</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="8 of 9">
+          <img src="assets/img/gallery/g-08.jpg" alt="At the bench" width="1400" height="764" loading="lazy" decoding="async" draggable="false">
+          <figcaption>At the bench</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="slide" aria-label="9 of 9">
+          <img src="assets/img/gallery/g-09.jpg" alt="Gold rings, pendant and chain" width="1408" height="768" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Gold rings, pendant and chain</figcaption>
+        </figure>
+        <!-- gallery-slides:end -->
+        </div>
+        <button class="slides-nav prev" type="button" aria-label="Previous photo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <button class="slides-nav next" type="button" aria-label="Next photo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="slides-foot">
+        <p class="slides-count"><span data-slide-now>1</span> / <span data-slide-total>1</span></p>
+        <div class="slides-dots" aria-label="Choose a photo"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -1462,6 +1568,106 @@ const APPT = {
 
 /* ---------- footer year ---------- */
 document.getElementById('yr').textContent = new Date().getFullYear();
+</script>
+
+<script>
+/* ---------- gallery slideshow ---------- */
+(function () {
+  const box = document.querySelector('[data-slideshow]');
+  if (!box) return;
+  const stage = box.querySelector('.slides-stage');
+  const track = box.querySelector('.slides-track');
+  const slides = [...track.querySelectorAll('.slide')];
+  const dotsBox = box.querySelector('.slides-dots');
+  const nowEl = box.querySelector('[data-slide-now]');
+  const totalEl = box.querySelector('[data-slide-total]');
+  const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const DELAY = 6000;
+  let i = 0, timer = null, away = false, down = null, dx = 0;
+
+  totalEl.textContent = slides.length;
+  if (slides.length < 2) {
+    box.classList.add('slides-single');
+    box.querySelectorAll('.slides-nav').forEach(b => b.remove());
+  }
+
+  slides.forEach((s, n) => {
+    const d = document.createElement('button');
+    d.type = 'button';
+    d.className = 'slides-dot';
+    d.setAttribute('aria-label', 'Show photo ' + (n + 1) + ' of ' + slides.length);
+    d.addEventListener('click', () => { show(n); restart(); });
+    dotsBox.appendChild(d);
+  });
+  const dots = [...dotsBox.children];
+
+  function show(n) {
+    i = (n + slides.length) % slides.length;
+    track.style.transform = 'translateX(' + (-i * 100) + '%)';
+    slides.forEach((s, k) => s.setAttribute('aria-hidden', k === i ? 'false' : 'true'));
+    dots.forEach((d, k) => d.setAttribute('aria-current', k === i ? 'true' : 'false'));
+    nowEl.textContent = i + 1;
+  }
+
+  function step(by) { show(i + by); }
+
+  function play() {
+    if (calm || slides.length < 2 || timer) return;
+    timer = setInterval(() => { if (!away && !document.hidden) step(1); }, DELAY);
+  }
+  function stop() { clearInterval(timer); timer = null; }
+  function restart() { stop(); play(); }
+
+  box.querySelector('.slides-nav.prev').addEventListener('click', () => { step(-1); restart(); });
+  box.querySelector('.slides-nav.next').addEventListener('click', () => { step(1); restart(); });
+
+  // keyboard
+  stage.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft') { step(-1); restart(); e.preventDefault(); }
+    if (e.key === 'ArrowRight') { step(1); restart(); e.preventDefault(); }
+  });
+
+  // pause while the pointer or keyboard focus is on it
+  box.addEventListener('mouseenter', stop);
+  box.addEventListener('mouseleave', play);
+  box.addEventListener('focusin', stop);
+  box.addEventListener('focusout', () => play());
+
+  // swipe / drag — follows the finger, settles on release
+  stage.addEventListener('pointerdown', e => {
+    if (e.target.closest('.slides-nav')) return;
+    down = e.clientX; dx = 0;
+    track.classList.add('dragging');
+    if (stage.setPointerCapture) stage.setPointerCapture(e.pointerId);
+  });
+  stage.addEventListener('pointermove', e => {
+    if (down === null) return;
+    dx = e.clientX - down;
+    track.style.transform = 'translateX(calc(' + (-i * 100) + '% + ' + dx + 'px))';
+  });
+  function release() {
+    if (down === null) return;
+    down = null;
+    track.classList.remove('dragging');
+    const far = Math.abs(dx) > Math.min(60, (stage.clientWidth || 320) * 0.12);
+    if (far) step(dx < 0 ? 1 : -1); else show(i);
+    restart();
+  }
+  stage.addEventListener('pointerup', release);
+  stage.addEventListener('pointercancel', release);
+  track.querySelectorAll('img').forEach(im => im.addEventListener('dragstart', e => e.preventDefault()));
+
+  // only run while the gallery is actually on screen
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(es => {
+      away = !es[0].isIntersecting;
+      if (away) stop(); else play();
+    }, { rootMargin: '120px' }).observe(box);
+  }
+
+  show(0);
+  if (slides.length > 1) play();
+})();
 </script>
 </body>
 </html>
