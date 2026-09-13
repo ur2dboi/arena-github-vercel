@@ -137,7 +137,9 @@ section{position:relative}
 /* star divider */
 .divider{display:flex;align-items:center;justify-content:center;gap:16px;margin:26px 0}
 .divider span{height:1px;width:min(140px,22vw);background:linear-gradient(90deg,transparent,var(--gold-line),transparent)}
-.star{width:20px;height:20px;flex:none;color:var(--gold-2)}
+/* inline-block, not inline: on an inline box width/height are ignored, and the
+   star SVG inside would then stretch to fill whatever box it sits in */
+.star{display:inline-block;width:20px;height:20px;flex:none;color:var(--gold-2)}
 .star svg{width:100%;height:100%;display:block}
 .rule{height:1px;background:var(--gold-line-2);border:0;margin:0}
 

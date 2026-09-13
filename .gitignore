@@ -4,6 +4,9 @@ assets/raw/
 huxley-website.zip
 .npm/
 node_modules/
+.cache/
+.local/
+.sudo_as_admin_successful
 *.log
 .DS_Store
 Thumbs.db

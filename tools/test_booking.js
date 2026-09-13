@@ -35,6 +35,22 @@ const pad = n => String(n).padStart(2, '0');
 const ymd = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 
 setTimeout(async () => {
+  // ---------- 0. star sizing ----------
+  // A star is an empty <i> that JS fills with a 100%-sized SVG. If the box is
+  // left inline, width/height are ignored and the glyph blows up to fill its
+  // container. jsdom does no layout, so assert the computed display instead.
+  const stars = $$('[data-star]');
+  check('stars rendered on the page', stars.length >= 10, stars.length + ' stars');
+  const inlineStars = stars.filter(el => win.getComputedStyle(el).display === 'inline');
+  check('no star is an inline box', inlineStars.length === 0,
+    inlineStars.map(el => el.parentElement.tagName + '.' + (el.parentElement.className || '-')).join(', '));
+  check('every star has an explicit size',
+    stars.every(el => /^\d+px$/.test(win.getComputedStyle(el).width)),
+    [...new Set(stars.map(el => win.getComputedStyle(el).width))].sort().join(' '));
+  const fStar = $('.f-bottom .star');
+  check('the footer star stays small', !!fStar && win.getComputedStyle(fStar).width === '12px',
+    fStar ? win.getComputedStyle(fStar).width : 'missing');
+
   // ---------- 1. calendar ----------
   const cells = $$('#calGrid .cal-day');
   check('calendar rendered', cells.length > 27, cells.length + ' cells');
