@@ -1,12 +1,7 @@
-/* Live check of the split admin, against the deployed site and the real backend:
-     HUXLEY_USER=adminhuxley HUXLEY_PASS='…' node tools/live_admin_split.mjs
-   Signs in on /login, follows the hand-over to /admin, and proves a stranger is
-   turned away. Run it from a folder that has jsdom installed. */
 import { JSDOM } from 'jsdom';
 
 const SITE = 'https://huxleyjewelry.vercel.app';
-const USER = process.env.HUXLEY_USER || process.argv[2];
-const PASS = process.env.HUXLEY_PASS || process.argv[3];
+const USER = process.argv[2], PASS = process.argv[3];
 let pass = 0, fail = 0;
 const check = (name, ok, extra = '') => { ok ? pass++ : fail++; console.log(`  ${ok ? '✓' : '✗'} ${name}${extra ? '  → ' + extra : ''}`); };
 
@@ -72,6 +67,18 @@ for (let i = 0; i < 40; i++) {
   if (bits.rows && bits.photos && /Signed in as/.test(q2('#whoami').textContent)) break;
 }
 console.log('   stats:', bits.stats.replace(/\s+/g, ' ').slice(0, 70), '| toast:', bits.toast.slice(0, 60));
+// what is actually on screen, following the ancestors (the split once left the dashboard hidden)
+const onScreen = (win, sel) => {
+  let el = win.document.querySelector(sel);
+  while (el && el.tagName !== 'BODY') {
+    if (win.getComputedStyle(el).display === 'none') return false;
+    el = el.parentElement;
+  }
+  return !!el;
+};
+check('the dashboard is really on screen', onScreen(w2, '#appView') && onScreen(w2, '#stats') && onScreen(w2, '#rows'));
+check('the appointments tab is the one on screen', onScreen(w2, '#tab-appts') && !onScreen(w2, '#tab-photos'));
+
 check('it greets the owner by name', new RegExp(USER).test(q2('#whoami').textContent), q2('#whoami').textContent);
 const rowCount = w2.document.querySelectorAll('#rows tr').length;
 const emptyShown = q2('#empty') && !q2('#empty').hidden;

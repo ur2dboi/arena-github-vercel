@@ -65,6 +65,19 @@ async function testAdmin() {
   const w = dom.window, d = w.document, q = s => d.querySelector(s), qa = s => [...d.querySelectorAll(s)];
 
   // the dashboard expects a session: the sign-in page puts these there
+  // content can exist in the DOM and still never paint — check what is actually on screen
+  const onScreen = sel => {
+    let el = d.querySelector(sel);
+    while (el && el.tagName !== 'BODY') {
+      if (w.getComputedStyle(el).display === 'none') return false;
+      el = el.parentElement;
+    }
+    return !!el;
+  };
+  check('[dash] the dashboard itself is on screen', onScreen('#appView') && onScreen('#rows') && onScreen('#stats'));
+  check('[dash] the default tab is on screen and the others are not',
+    onScreen('#tab-appts') && !onScreen('#tab-photos') && !onScreen('#tab-settings'));
+
   check('[dash] the dashboard never shows a password field', !q('#a-pass') && !q('#loginForm'));
   check('[dash] a session greeted the user by name', /adminhuxley/.test(q('#whoami').textContent), q('#whoami').textContent);
   check('[dash] the page did not bounce back to sign-in', !d.documentElement.getAttribute('data-leaving'),

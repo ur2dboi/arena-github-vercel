@@ -352,6 +352,7 @@ function leave(page) {
 if (!USER_ || !PASS) leave('/login');
 
 function startDashboard() {
+  $('#appView').hidden = false;        // the dashboard is delivered hidden; this reveals it
   $('#whoami').textContent = 'Signed in as ' + USER_;
   $('#s-user').value = USER_;
   $('#b-time').innerHTML = '<option value="ALL">Whole day (closed)</option>' + SLOTS.map(s => '<option>' + s + '</option>').join('');
