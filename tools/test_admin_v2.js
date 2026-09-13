@@ -25,7 +25,7 @@ async function testAdmin() {
   }];
   const photos = { hero: { id: 'file-1', url: 'https://lh3.googleusercontent.com/d/file-1', updated: '' } };
   const calls = [];
-  let creds = { user: 'adminhuxley', pass: 'huxley2026' };
+  let creds = { user: 'adminhuxley', pass: 'fixture-pass-1' };
 
   // the shipped page may have no backend configured; point it at the mock for the whole run
   const dom = new JSDOM(CONFIGURED, {
@@ -72,7 +72,7 @@ async function testAdmin() {
   check('[login] the toggle hides it again', q('#urlField').hidden === true);
   check('[login] portal is hidden until sign-in', q('#appView').hidden);
   check('[login] no credentials in the page source',
-    !/huxley2026/.test(PAGE) && !/password\s*[:=]\s*['"][^'"]+['"]/i.test(PAGE));
+    !/fixture-pass-1/.test(PAGE) && !/password\s*[:=]\s*['"][^'"]+['"]/i.test(PAGE));
 
   // sign in with the URL field left hidden — it must use the built-in address
   q('#a-url').value = '';   // proves the default is what gets used
@@ -82,16 +82,16 @@ async function testAdmin() {
   check('[login] rejects a wrong password', /wrong username or password/i.test(q('#loginErr').textContent), q('#loginErr').textContent);
 
   // wrong username
-  q('#a-pass').value = 'huxley2026'; q('#a-user').value = 'someoneelse';
+  q('#a-pass').value = 'fixture-pass-1'; q('#a-user').value = 'someoneelse';
   q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
   await new Promise(r => setTimeout(r, 120));
   check('[login] rejects a wrong username', q('#loginErr').classList.contains('show'));
 
   // correct
-  q('#a-user').value = 'adminhuxley'; q('#a-pass').value = 'huxley2026';
+  q('#a-user').value = 'adminhuxley'; q('#a-pass').value = 'fixture-pass-1';
   q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
   await new Promise(r => setTimeout(r, 250));
-  check('[login] accepts adminhuxley / huxley2026', !q('#appView').hidden, q('#loginErr').textContent);
+  check('[login] accepts adminhuxley / fixture-pass-1', !q('#appView').hidden, q('#loginErr').textContent);
   check('[login] username is echoed back', /adminhuxley/.test(q('#whoami').textContent), q('#whoami').textContent);
   check('[login] username remembered for next visit', w.localStorage.getItem('huxley_user') === 'adminhuxley');
   check('[login] password kept in session storage only', !!w.sessionStorage.getItem('huxley_pass') && !w.localStorage.getItem('huxley_pass'));
@@ -152,7 +152,7 @@ async function testAdmin() {
   check('[settings] requires the current password',
     /current password/i.test(q('#pwErr').textContent), q('#pwErr').textContent);
 
-  q('#s-current').value = 'huxley2026';
+  q('#s-current').value = 'fixture-pass-1';
   q('#s-new').value = 'abc'; q('#s-confirm').value = 'abc';
   save(); await new Promise(r => setTimeout(r, 80));
   check('[settings] rejects a short new password', /at least 6 characters/i.test(q('#pwErr').textContent));
@@ -167,7 +167,7 @@ async function testAdmin() {
   save(); await new Promise(r => setTimeout(r, 120));
   check('[settings] refuses to save with a wrong current password', /wrong username or password/i.test(q('#pwErr').textContent));
 
-  q('#s-current').value = 'huxley2026';
+  q('#s-current').value = 'fixture-pass-1';
   q('#s-new').value = 'huxley2027'; q('#s-confirm').value = 'huxley2027';
   q('#s-user').value = 'adminhuxley';
   save(); await new Promise(r => setTimeout(r, 150));
@@ -210,7 +210,7 @@ async function testUrlFieldFallbacks() {
   const w2 = d2.window, doc2 = d2.window.document;
   check('[fallback] field starts hidden when a backend is configured', doc2.querySelector('#urlField').hidden === true);
   doc2.querySelector('#a-user').value = 'adminhuxley';
-  doc2.querySelector('#a-pass').value = 'huxley2026';
+  doc2.querySelector('#a-pass').value = 'fixture-pass-1';
   doc2.querySelector('#loginForm').dispatchEvent(new w2.Event('submit', { bubbles: true, cancelable: true }));
   await new Promise(r => setTimeout(r, 200));
   check('[fallback] a failed connection reveals the field',
@@ -281,7 +281,7 @@ async function testStaleAddress() {
     }
   });
   const w = d.window, q = sel => w.document.querySelector(sel);
-  q('#a-user').value = 'adminhuxley'; q('#a-pass').value = 'huxley2026';
+  q('#a-user').value = 'adminhuxley'; q('#a-pass').value = 'fixture-pass-1';
   q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
   await new Promise(r => setTimeout(r, 300));
   check('[stale] the old saved address is retried with the built-in one', seen.includes(OLD) && seen.includes(API), seen.map(u => u.includes('AKfyOLD') ? 'old' : 'built-in').join(' → '));
