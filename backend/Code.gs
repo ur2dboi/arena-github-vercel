@@ -63,7 +63,7 @@ var PHOTO_HEADERS  = ['Slot','Drive file ID','URL','Updated'];
 var SLOTS = ['12:00 NN','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM'];
 
 /* the photo slots the website understands — keep in step with index.html */
-var PHOTO_SLOTS = ['hero','rings','college','pendant','earrings','bangles','bracelets','chains','workshop'];
+var PHOTO_SLOTS = ['hero','rings','college','pendant','earrings','bangles','bracelets','chains','workshop','repairs'];
 var MAX_PHOTO_BYTES = 6 * 1024 * 1024;      // 6 MB, after the browser has resized it
 
 var DEFAULT_USER = 'adminhuxley';

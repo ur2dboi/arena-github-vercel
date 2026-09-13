@@ -154,7 +154,8 @@ In the portal go to **Settings** → change the username and/or password → **S
 - Auto-refreshes every 2 minutes while open; works on a phone
 
 **Website photos tab**
-- Nine photo slots, one per part of the site — hero, rings, college rings, pendants, earrings, bangles, bracelets, chains, workshop
+- Ten photo slots, one per part of the site — hero, rings, college rings, pendants, earrings, bangles, bracelets, chains, Our Craft, and the Custom & Repairs card
+  (a slot added after your backend went live needs one more publish: **Deploy → Manage deployments → pencil → New version → Deploy**)
 - **Upload** from your phone or computer: the image is resized to 1800px and compressed in the browser before it is sent, so camera-sized files are fine
 - **Or paste a link** if the photo is already online
 - **Reset** returns a slot to the original design photo

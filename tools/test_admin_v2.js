@@ -104,13 +104,13 @@ async function testAdmin() {
   // ---- photo manager ----
   qa('.tabs button')[1].dispatchEvent(new w.MouseEvent('click', { bubbles: true }));
   const cards = qa('#photoGrid .photo');
-  check('[photos] every slot has a card', cards.length === 9, cards.length + ' cards');
+  check('[photos] every slot has a card', cards.length === 10, cards.length + ' cards');
   check('[photos] slots match the backend list',
-    cards.map(c => c.dataset.slot).join(',') === 'hero,rings,college,pendant,earrings,bangles,bracelets,chains,workshop',
+    cards.map(c => c.dataset.slot).join(',') === 'hero,rings,college,pendant,earrings,bangles,bracelets,chains,workshop,repairs',
     cards.map(c => c.dataset.slot).join(','));
   check('[photos] current photo is shown', /googleusercontent/.test(q('#photoGrid [data-slot="hero"] img').src));
   check('[photos] slots without a photo say so', /original design photo/i.test(q('#photoGrid [data-slot="rings"]').textContent));
-  check('[photos] upload control on every card', qa('#photoGrid input[type=file]').length === 9);
+  check('[photos] upload control on every card', qa('#photoGrid input[type=file]').length === 10);
   check('[photos] each upload field targets its own slot',
     qa('#photoGrid input[type=file]').map(i => i.dataset.upload).includes('chains'));
 
@@ -261,8 +261,11 @@ async function testSite() {
   check('[site] untouched slots keep the built-in photo',
     qa('img[data-photo="rings"]')[0].getAttribute('src') === 'assets/img/rings.jpg',
     qa('img[data-photo="rings"]')[0].getAttribute('src'));
-  check('[site] the workshop photo appears in two places',
-    qa('img[data-photo="workshop"]').length === 2);
+  check('[site] craft and repairs are separate slots',
+    qa('img[data-photo="workshop"]').length === 1 && qa('img[data-photo="repairs"]').length === 1);
+  check('[site] craft and repairs use different photos',
+    qa('img[data-photo="workshop"]')[0].getAttribute('src') !== qa('img[data-photo="repairs"]')[0].getAttribute('src'),
+    qa('img[data-photo="workshop"]')[0].getAttribute('src') + ' vs ' + qa('img[data-photo="repairs"]')[0].getAttribute('src'));
 
   // no backend configured → site still works
   const plain = new JSDOM(INDEX, { runScripts: 'dangerously', pretendToBeVisual: true, url: 'http://localhost/',
