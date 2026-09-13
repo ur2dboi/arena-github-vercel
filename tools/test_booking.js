@@ -55,29 +55,45 @@ setTimeout(async () => {
   const gbox = doc.querySelector('[data-slideshow]');
   check('the gallery is on the page', !!gbox);
   const gSlides = gbox ? [...gbox.querySelectorAll('.slide')] : [];
-  const gDots = gbox ? [...gbox.querySelectorAll('.slides-dot')] : [];
-  check('it holds more than one photo', gSlides.length >= 2, gSlides.length + ' slides');
-  check('there is one dot per photo', gDots.length === gSlides.length, gDots.length + ' dots');
-  check('every photo has a description', gSlides.every(s => s.querySelector('img').getAttribute('alt')));
-  check('every photo states its size (no jumping as they load)',
-    gSlides.every(s => s.querySelector('img').getAttribute('width') && s.querySelector('img').getAttribute('height')));
+  const gThumbs = gbox ? [...gbox.querySelectorAll('.slides-thumb')] : [];
+  const gMedia = gSlides.map(s => s.querySelector('.slide-media'));
+  check('it holds more than one piece', gSlides.length >= 2, gSlides.length + ' slides');
+  check('there is one thumbnail per slide', gThumbs.length === gSlides.length, gThumbs.length + ' thumbs');
+  check('every thumbnail has a picture', gThumbs.length > 0 && gThumbs.every(t => t.querySelector('img[src]')));
+  check('every slide is described',
+    gSlides.every((s, n) => !!(gMedia[n].getAttribute('alt') || gMedia[n].getAttribute('aria-label'))));
+  check('every slide states its size (no jumping as they load)',
+    gSlides.every((s, n) => gMedia[n].getAttribute('width') && gMedia[n].getAttribute('height')));
+  const gVids = gbox ? [...gbox.querySelectorAll('.slide video')] : [];
+  check('videos carry a poster and wait to be played',
+    gVids.length > 0 && gVids.every(v => v.getAttribute('poster') && v.getAttribute('preload') === 'none'));
+  check('videos are labelled for screen readers',
+    gVids.every(v => v.getAttribute('aria-label')));
   if (gbox && gSlides.length > 1) {
     const gTrack = gbox.querySelector('.slides-track');
     const gNow = () => gbox.querySelector('[data-slide-now]').textContent;
     const gClick = el => el.dispatchEvent(new win.MouseEvent('click', { bubbles: true }));
+    check('the counter starts at the first slide', gNow() === '1', gNow());
+    check('the counter knows how many slides there are',
+      gbox.querySelector('[data-slide-total]').textContent === String(gSlides.length),
+      gbox.querySelector('[data-slide-total]').textContent);
     gClick(gbox.querySelector('.slides-nav.next'));
-    check('next moves one photo on', gTrack.style.transform === 'translateX(-100%)' && gNow() === '2',
+    check('next moves one slide on', gTrack.style.transform === 'translateX(-100%)' && gNow() === '2',
       gTrack.style.transform + ' / ' + gNow());
     gClick(gbox.querySelector('.slides-nav.prev'));
     check('prev steps back', gTrack.style.transform === 'translateX(0%)' && gNow() === '1',
       gTrack.style.transform + ' / ' + gNow());
     gClick(gbox.querySelector('.slides-nav.prev'));
-    check('prev from the first photo wraps round to the last', gNow() === String(gSlides.length), gNow());
-    const jump = Math.min(3, gSlides.length - 1);
-    gClick(gDots[jump]);
-    check('a dot jumps straight to its photo',
+    check('prev from the first slide wraps round to the last', gNow() === String(gSlides.length), gNow());
+    check('the last thumbnail is marked as the current one',
+      gThumbs[gSlides.length - 1].getAttribute('aria-current') === 'true');
+    const jump = Math.min(30, gSlides.length - 1);
+    gClick(gThumbs[jump]);
+    check('a thumbnail jumps straight to its slide',
       gTrack.style.transform === 'translateX(-' + jump * 100 + '%)' && gNow() === String(jump + 1),
       gTrack.style.transform + ' / ' + gNow());
+    check('a video slide can be spotted from its thumbnail',
+      gThumbs[jump].classList.contains('is-video') === gSlides[jump].classList.contains('slide-video'));
   }
 
   // ---------- 1. calendar ----------

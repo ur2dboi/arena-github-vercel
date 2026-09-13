@@ -85,25 +85,37 @@ your Sheet (like the bookings do), so nothing depends on the customer's own mail
 
 ## 5. The gallery slideshow
 
-The gallery sits between "Start an Order" and the FAQ. It shows one photo at a time with
-arrows, dots and a photo counter; on a phone you can swipe through it, and it moves on by
-itself every six seconds until someone touches it.
+The gallery sits between "Start an Order" and the FAQ. It shows the shop's photos and short
+videos one at a time — arrows, a thumbnail strip and a counter underneath, swipe on a phone —
+and it moves on by itself every six seconds until someone touches it. A video only loads when
+someone presses play, and while a clip is playing the slideshow waits for it.
 
-**To add or swap photos:**
+**To add, remove or replace photos and videos:**
 
-1. Put the photo files in `assets/raw/gallery/` (that folder is not published — it is only
-   where you drop the originals).
+1. Put the files in `assets/raw/gallery/` (that folder is not published — it is only where you
+   drop the originals). Photos: jpg, jpeg, png, webp. Videos: mp4 or mov, kept short.
 2. Run one command: `python3 tools/build_gallery.py`
-3. The site rebuilds itself: photos are resized for the web, written to
-   `assets/img/gallery/`, and the slides in `index.html` are rewritten.
+3. The site rebuilds itself: photos are resized, videos are re-encoded small enough for a
+   phone, thumbnails and posters are made, and the slides in `index.html` are rewritten.
 
-Order is alphabetical by filename, so name them `01-…`, `02-…` if you want to choose what
-comes first. For captions, add a `captions.txt` in the same folder — one caption per line,
-in the same order as the photos; without it the filename is used.
+Order follows the filenames, so name them `001-…`, `002-…` if you want to choose what comes
+first. Captions come from `captions.txt` in the same folder — one line per file, written as:
+
+```
+001-photo.jpg | Wedding and engagement set
+```
+
+Delete a line, or delete the file from the folder and re-run, to take it off the site.
+Without a captions line the filename is used.
+
+Videos need ffmpeg installed on the computer doing the build (`brew install ffmpeg` on a Mac,
+`winget install Gyan.FFmpeg` on Windows, `sudo apt install ffmpeg` on Linux) — photos on their
+own do not.
 
 Any mix of sizes and shapes works (upright or wide phone photos are both fine) — nothing is
-cropped, and every photo is centred in the frame. Around 1600 pixels on the long edge is
-plenty; the tool shrinks anything bigger.
+cropped, and every item is centred in the frame. The built files carry a short code in their
+name (for example `g-07-eafaab.jpg`), so replacing a photo gives it a new address and visitors
+never see a stale picture.
 
 ---
 

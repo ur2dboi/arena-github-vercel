@@ -455,8 +455,9 @@ footer p{font-size:.9rem;color:var(--ink-2)}
 .slides-track.dragging{transition:none}
 .slide{flex:0 0 100%;min-width:0;height:100%;margin:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;padding:clamp(10px,1.7vw,22px)}
-.slide img{max-width:100%;max-height:calc(100% - 34px);width:auto;height:auto;object-fit:contain;
-  border-radius:8px;user-select:none;-webkit-user-drag:none}
+.slide-media{max-width:100%;max-height:calc(100% - 34px);width:auto;height:auto;object-fit:contain;
+  border-radius:8px;-webkit-user-drag:none;user-select:none}
+.slide-video .slide-media{background:#100E0A;box-shadow:0 8px 30px rgba(44,40,32,.28)}
 .slide figcaption{margin-top:11px;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
   color:var(--muted);text-align:center}
 .slides-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:44px;
@@ -466,19 +467,32 @@ footer p{font-size:.9rem;color:var(--ink-2)}
 .slides-nav svg{width:18px;height:18px}
 .slides-nav.prev{left:clamp(8px,1.4vw,16px)}
 .slides-nav.next{right:clamp(8px,1.4vw,16px)}
-.slides-foot{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:16px}
+.slides-foot{display:flex;flex-direction:column;align-items:center;gap:12px;margin-top:16px}
+.slides-strip{display:flex;gap:9px;max-width:100%;overflow-x:auto;padding:4px 2px 8px;
+  scroll-snap-type:x proximity;scrollbar-width:thin;scrollbar-color:var(--gold-line-2) transparent;
+  -webkit-overflow-scrolling:touch}
+.slides-strip::-webkit-scrollbar{height:6px}
+.slides-strip::-webkit-scrollbar-thumb{background:var(--gold-line-2);border-radius:3px}
+.slides-strip::-webkit-scrollbar-track{background:transparent}
+.slides-thumb{position:relative;flex:0 0 auto;width:66px;height:66px;padding:0;border-radius:10px;
+  overflow:hidden;cursor:pointer;scroll-snap-align:center;border:1px solid var(--gold-line);
+  background:var(--beige);opacity:.5;transition:opacity .25s,border-color .25s,transform .25s}
+.slides-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.slides-thumb:hover{opacity:.85}
+.slides-thumb[aria-current="true"]{opacity:1;border-color:var(--gold-2);transform:translateY(-2px);
+  box-shadow:0 4px 14px rgba(169,118,28,.25)}
+.slides-thumb.is-video::after{content:"";position:absolute;right:5px;bottom:5px;width:0;height:0;
+  border-left:7px solid rgba(255,253,246,.95);border-top:5px solid transparent;border-bottom:5px solid transparent;
+  filter:drop-shadow(0 1px 2px rgba(44,40,32,.55))}
 .slides-count{margin:0;font-size:.68rem;letter-spacing:.2em;color:var(--muted)}
-.slides-dots{display:flex;flex-wrap:wrap;gap:9px;justify-content:center}
-.slides-dot{width:9px;height:9px;padding:0;border-radius:50%;cursor:pointer;
-  border:1px solid var(--gold-2);background:transparent;transition:background .2s,transform .2s}
-.slides-dot:hover{transform:scale(1.25)}
-.slides-dot[aria-current="true"]{background:var(--gold-2)}
+.slides-count span:first-child{color:var(--gold)}
 @media (max-width:760px){
-  .slides-stage{height:clamp(230px,60vw,360px)}
+  .slides-stage{height:clamp(300px,86vw,430px)}
   .slides-nav{width:38px;height:38px}
   .slide{padding:10px}
   .slide figcaption{font-size:.62rem;letter-spacing:.16em}
-  .slides-foot{gap:14px;margin-top:14px}
+  .slides-thumb{width:56px;height:56px;border-radius:8px}
+  .slides-foot{gap:10px;margin-top:14px}
 }
 
 /* ---------- responsive ---------- */
@@ -926,45 +940,324 @@ footer p{font-size:.9rem;color:var(--ink-2)}
 
     <div class="slides rv" data-slideshow>
       <div class="slides-stage" tabindex="0" role="region" aria-roledescription="carousel"
-           aria-label="Photos of finished Huxley pieces">
+           aria-label="Photos and videos of finished Huxley pieces">
         <noscript><style>.slides-track{overflow-x:auto}</style></noscript>
         <div class="slides-track">
 <!-- gallery-slides:start -->
-        <figure class="slide" role="group" aria-roledescription="slide" aria-label="1 of 9">
-          <img src="assets/img/gallery/g-01.jpg" alt="Wedding & engagement rings" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
-          <figcaption>Wedding & engagement rings</figcaption>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="1 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-01-eafaab.jpg" data-caption="Silver ring">
+          <img class="slide-media" src="assets/img/gallery/g-01-eafaab.jpg" alt="Silver ring"
+               width="1440" height="1080" loading="eager" fetchpriority="high" decoding="async" draggable="false">
+          <figcaption>Silver ring</figcaption>
         </figure>
-        <figure class="slide" role="group" aria-roledescription="slide" aria-label="2 of 9">
-          <img src="assets/img/gallery/g-02.jpg" alt="College rings" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
-          <figcaption>College rings</figcaption>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="2 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-02-ac04a6.jpg" data-caption="Gold ring">
+          <img class="slide-media" src="assets/img/gallery/g-02-ac04a6.jpg" alt="Gold ring"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Gold ring</figcaption>
         </figure>
-        <figure class="slide" role="group" aria-roledescription="slide" aria-label="3 of 9">
-          <img src="assets/img/gallery/g-03.jpg" alt="Pendants" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
-          <figcaption>Pendants</figcaption>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="3 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-03-db2cb6.jpg" data-caption="Gold bands">
+          <img class="slide-media" src="assets/img/gallery/g-03-db2cb6.jpg" alt="Gold bands"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Gold bands</figcaption>
         </figure>
-        <figure class="slide" role="group" aria-roledescription="slide" aria-label="4 of 9">
-          <img src="assets/img/gallery/g-04.jpg" alt="Earrings" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
-          <figcaption>Earrings</figcaption>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="4 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-04-17e852.jpg" data-caption="Wedding and engagement set">
+          <img class="slide-media" src="assets/img/gallery/g-04-17e852.jpg" alt="Wedding and engagement set"
+               width="1440" height="1080" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Wedding and engagement set</figcaption>
         </figure>
-        <figure class="slide" role="group" aria-roledescription="slide" aria-label="5 of 9">
-          <img src="assets/img/gallery/g-05.jpg" alt="Bangles" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
-          <figcaption>Bangles</figcaption>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="5 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-05-51f04d.jpg" data-caption="Two-tone ring set">
+          <img class="slide-media" src="assets/img/gallery/g-05-51f04d.jpg" alt="Two-tone ring set"
+               width="1440" height="1080" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Two-tone ring set</figcaption>
         </figure>
-        <figure class="slide" role="group" aria-roledescription="slide" aria-label="6 of 9">
-          <img src="assets/img/gallery/g-06.jpg" alt="Bracelets" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
-          <figcaption>Bracelets</figcaption>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="6 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-06-3c640f.jpg" data-caption="Ring with stones">
+          <img class="slide-media" src="assets/img/gallery/g-06-3c640f.jpg" alt="Ring with stones"
+               width="1440" height="1080" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Ring with stones</figcaption>
         </figure>
-        <figure class="slide" role="group" aria-roledescription="slide" aria-label="7 of 9">
-          <img src="assets/img/gallery/g-07.jpg" alt="Chains" width="1100" height="600" loading="lazy" decoding="async" draggable="false">
-          <figcaption>Chains</figcaption>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="7 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-07-434d63.jpg" data-caption="Gold rings">
+          <img class="slide-media" src="assets/img/gallery/g-07-434d63.jpg" alt="Gold rings"
+               width="1440" height="1080" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Gold rings</figcaption>
         </figure>
-        <figure class="slide" role="group" aria-roledescription="slide" aria-label="8 of 9">
-          <img src="assets/img/gallery/g-08.jpg" alt="At the bench" width="1400" height="764" loading="lazy" decoding="async" draggable="false">
-          <figcaption>At the bench</figcaption>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="8 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-08-665fda.jpg" data-caption="Gold ring set">
+          <img class="slide-media" src="assets/img/gallery/g-08-665fda.jpg" alt="Gold ring set"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Gold ring set</figcaption>
         </figure>
-        <figure class="slide" role="group" aria-roledescription="slide" aria-label="9 of 9">
-          <img src="assets/img/gallery/g-09.jpg" alt="Gold rings, pendant and chain" width="1408" height="768" loading="lazy" decoding="async" draggable="false">
-          <figcaption>Gold rings, pendant and chain</figcaption>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="9 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-09-26242e.jpg" data-caption="Wide gold bands">
+          <img class="slide-media" src="assets/img/gallery/g-09-26242e.jpg" alt="Wide gold bands"
+               width="1440" height="1080" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Wide gold bands</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="10 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-10-8f7992.jpg" data-caption="Silver rings">
+          <img class="slide-media" src="assets/img/gallery/g-10-8f7992.jpg" alt="Silver rings"
+               width="1440" height="1080" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Silver rings</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="11 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-11-d0a88c.jpg" data-caption="Gold bands">
+          <img class="slide-media" src="assets/img/gallery/g-11-d0a88c.jpg" alt="Gold bands"
+               width="1440" height="1080" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Gold bands</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="12 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-12-0b94f3.jpg" data-caption="Rings in our presentation box">
+          <img class="slide-media" src="assets/img/gallery/g-12-0b94f3.jpg" alt="Rings in our presentation box"
+               width="1200" height="1600" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Rings in our presentation box</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="13 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-13-1ade3f.jpg" data-caption="Silver rings in our box">
+          <img class="slide-media" src="assets/img/gallery/g-13-1ade3f.jpg" alt="Silver rings in our box"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Silver rings in our box</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="14 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-14-6bad78.jpg" data-caption="Gold rings in our box">
+          <img class="slide-media" src="assets/img/gallery/g-14-6bad78.jpg" alt="Gold rings in our box"
+               width="720" height="960" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Gold rings in our box</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="15 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-15-4502dc.jpg" data-caption="Engagement ring">
+          <img class="slide-media" src="assets/img/gallery/g-15-4502dc.jpg" alt="Engagement ring"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Engagement ring</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="16 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-16-83512c.jpg" data-caption="Rings in our box">
+          <img class="slide-media" src="assets/img/gallery/g-16-83512c.jpg" alt="Rings in our box"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Rings in our box</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="17 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-17-0988ab.jpg" data-caption="Gold rings in our box">
+          <img class="slide-media" src="assets/img/gallery/g-17-0988ab.jpg" alt="Gold rings in our box"
+               width="720" height="960" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Gold rings in our box</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="18 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-18-1586f3.jpg" data-caption="Silver rings in our box">
+          <img class="slide-media" src="assets/img/gallery/g-18-1586f3.jpg" alt="Silver rings in our box"
+               width="720" height="960" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Silver rings in our box</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="19 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-19-bc6545.jpg" data-caption="Silver set on our box">
+          <img class="slide-media" src="assets/img/gallery/g-19-bc6545.jpg" alt="Silver set on our box"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Silver set on our box</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="20 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-20-447ac4.jpg" data-caption="Two-tone rings in our box">
+          <img class="slide-media" src="assets/img/gallery/g-20-447ac4.jpg" alt="Two-tone rings in our box"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Two-tone rings in our box</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="21 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-21-658141.jpg" data-caption="Rings ready for collection">
+          <img class="slide-media" src="assets/img/gallery/g-21-658141.jpg" alt="Rings ready for collection"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Rings ready for collection</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="22 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-22-c90d8c.jpg" data-caption="Ring with a blue stone">
+          <img class="slide-media" src="assets/img/gallery/g-22-c90d8c.jpg" alt="Ring with a blue stone"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Ring with a blue stone</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="23 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-23-00ca15.jpg" data-caption="Blue stone ring in our box">
+          <img class="slide-media" src="assets/img/gallery/g-23-00ca15.jpg" alt="Blue stone ring in our box"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Blue stone ring in our box</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="24 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-24-c4695c.jpg" data-caption="Gold rings in our box">
+          <img class="slide-media" src="assets/img/gallery/g-24-c4695c.jpg" alt="Gold rings in our box"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Gold rings in our box</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="25 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-25-8bff73.jpg" data-caption="Gold rings in our box">
+          <img class="slide-media" src="assets/img/gallery/g-25-8bff73.jpg" alt="Gold rings in our box"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Gold rings in our box</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="26 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-26-5f8b88.jpg" data-caption="Gold rings in our box">
+          <img class="slide-media" src="assets/img/gallery/g-26-5f8b88.jpg" alt="Gold rings in our box"
+               width="720" height="960" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Gold rings in our box</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="27 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-27-636aec.jpg" data-caption="Gold ring on display">
+          <img class="slide-media" src="assets/img/gallery/g-27-636aec.jpg" alt="Gold ring on display"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Gold ring on display</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="28 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-28-ff39f8.jpg" data-caption="Pendant necklace">
+          <img class="slide-media" src="assets/img/gallery/g-28-ff39f8.jpg" alt="Pendant necklace"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Pendant necklace</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="29 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-29-43cada.jpg" data-caption="Necklace with a round pendant">
+          <img class="slide-media" src="assets/img/gallery/g-29-43cada.jpg" alt="Necklace with a round pendant"
+               width="1440" height="1920" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Necklace with a round pendant</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="30 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-30-301104.jpg" data-caption="Pendant in our box">
+          <img class="slide-media" src="assets/img/gallery/g-30-301104.jpg" alt="Pendant in our box"
+               width="1086" height="1448" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Pendant in our box</figcaption>
+        </figure>
+        <figure class="slide slide-video" role="group" aria-roledescription="video" aria-label="31 of 48"
+                data-kind="video" data-thumb="assets/img/gallery/t-31-b09810.jpg" data-caption="Our presentation box">
+          <video class="slide-media" controls playsinline preload="none"
+                 poster="assets/img/gallery/g-31-b09810.jpg" width="464" height="832"
+                 data-duration="13.4" aria-label="Our presentation box (video)">
+            <source src="assets/video/v-31-b09810.mp4" type="video/mp4">
+          </video>
+          <figcaption>Video: Our presentation box</figcaption>
+        </figure>
+        <figure class="slide slide-video" role="group" aria-roledescription="video" aria-label="32 of 48"
+                data-kind="video" data-thumb="assets/img/gallery/t-32-9e3260.jpg" data-caption="Gemstone bracelet">
+          <video class="slide-media" controls playsinline preload="none"
+                 poster="assets/img/gallery/g-32-9e3260.jpg" width="464" height="832"
+                 data-duration="14.4" aria-label="Gemstone bracelet (video)">
+            <source src="assets/video/v-32-9e3260.mp4" type="video/mp4">
+          </video>
+          <figcaption>Video: Gemstone bracelet</figcaption>
+        </figure>
+        <figure class="slide slide-video" role="group" aria-roledescription="video" aria-label="33 of 48"
+                data-kind="video" data-thumb="assets/img/gallery/t-33-15d621.jpg" data-caption="Our brand">
+          <video class="slide-media" controls playsinline preload="none"
+                 poster="assets/img/gallery/g-33-15d621.jpg" width="464" height="832"
+                 data-duration="28.4" aria-label="Our brand (video)">
+            <source src="assets/video/v-33-15d621.mp4" type="video/mp4">
+          </video>
+          <figcaption>Video: Our brand</figcaption>
+        </figure>
+        <figure class="slide slide-video" role="group" aria-roledescription="video" aria-label="34 of 48"
+                data-kind="video" data-thumb="assets/img/gallery/t-34-b2594e.jpg" data-caption="Gold ring, up close">
+          <video class="slide-media" controls playsinline preload="none"
+                 poster="assets/img/gallery/g-34-b2594e.jpg" width="464" height="832"
+                 data-duration="12.7" aria-label="Gold ring, up close (video)">
+            <source src="assets/video/v-34-b2594e.mp4" type="video/mp4">
+          </video>
+          <figcaption>Video: Gold ring, up close</figcaption>
+        </figure>
+        <figure class="slide slide-video" role="group" aria-roledescription="video" aria-label="35 of 48"
+                data-kind="video" data-thumb="assets/img/gallery/t-35-50f933.jpg" data-caption="Necklace on display">
+          <video class="slide-media" controls playsinline preload="none"
+                 poster="assets/img/gallery/g-35-50f933.jpg" width="464" height="832"
+                 data-duration="9.4" aria-label="Necklace on display (video)">
+            <source src="assets/video/v-35-50f933.mp4" type="video/mp4">
+          </video>
+          <figcaption>Video: Necklace on display</figcaption>
+        </figure>
+        <figure class="slide slide-video" role="group" aria-roledescription="video" aria-label="36 of 48"
+                data-kind="video" data-thumb="assets/img/gallery/t-36-977404.jpg" data-caption="Our brand">
+          <video class="slide-media" controls playsinline preload="none"
+                 poster="assets/img/gallery/g-36-977404.jpg" width="464" height="832"
+                 data-duration="14.0" aria-label="Our brand (video)">
+            <source src="assets/video/v-36-977404.mp4" type="video/mp4">
+          </video>
+          <figcaption>Video: Our brand</figcaption>
+        </figure>
+        <figure class="slide slide-video" role="group" aria-roledescription="video" aria-label="37 of 48"
+                data-kind="video" data-thumb="assets/img/gallery/t-37-c8fc44.jpg" data-caption="Gold earrings">
+          <video class="slide-media" controls playsinline preload="none"
+                 poster="assets/img/gallery/g-37-c8fc44.jpg" width="464" height="832"
+                 data-duration="7.8" aria-label="Gold earrings (video)">
+            <source src="assets/video/v-37-c8fc44.mp4" type="video/mp4">
+          </video>
+          <figcaption>Video: Gold earrings</figcaption>
+        </figure>
+        <figure class="slide slide-video" role="group" aria-roledescription="video" aria-label="38 of 48"
+                data-kind="video" data-thumb="assets/img/gallery/t-38-68d147.jpg" data-caption="Unboxing">
+          <video class="slide-media" controls playsinline preload="none"
+                 poster="assets/img/gallery/g-38-68d147.jpg" width="464" height="832"
+                 data-duration="17.5" aria-label="Unboxing (video)">
+            <source src="assets/video/v-38-68d147.mp4" type="video/mp4">
+          </video>
+          <figcaption>Video: Unboxing</figcaption>
+        </figure>
+        <figure class="slide slide-video" role="group" aria-roledescription="video" aria-label="39 of 48"
+                data-kind="video" data-thumb="assets/img/gallery/t-39-7fd6a0.jpg" data-caption="Diamond ring, up close">
+          <video class="slide-media" controls playsinline preload="none"
+                 poster="assets/img/gallery/g-39-7fd6a0.jpg" width="464" height="832"
+                 data-duration="4.3" aria-label="Diamond ring, up close (video)">
+            <source src="assets/video/v-39-7fd6a0.mp4" type="video/mp4">
+          </video>
+          <figcaption>Video: Diamond ring, up close</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="40 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-40-7cd8a4.jpg" data-caption="Inside our shop">
+          <img class="slide-media" src="assets/img/gallery/g-40-7cd8a4.jpg" alt="Inside our shop"
+               width="1280" height="720" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Inside our shop</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="41 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-41-5af02c.jpg" data-caption="With our customers">
+          <img class="slide-media" src="assets/img/gallery/g-41-5af02c.jpg" alt="With our customers"
+               width="1206" height="900" loading="lazy" decoding="async" draggable="false">
+          <figcaption>With our customers</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="42 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-42-bcc632.jpg" data-caption="With our customers">
+          <img class="slide-media" src="assets/img/gallery/g-42-bcc632.jpg" alt="With our customers"
+               width="1080" height="758" loading="lazy" decoding="async" draggable="false">
+          <figcaption>With our customers</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="43 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-43-ce79a5.jpg" data-caption="At the shop">
+          <img class="slide-media" src="assets/img/gallery/g-43-ce79a5.jpg" alt="At the shop"
+               width="1206" height="900" loading="lazy" decoding="async" draggable="false">
+          <figcaption>At the shop</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="44 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-44-160729.jpg" data-caption="Inside our shop">
+          <img class="slide-media" src="assets/img/gallery/g-44-160729.jpg" alt="Inside our shop"
+               width="1206" height="678" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Inside our shop</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="45 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-45-45b60a.jpg" data-caption="Inside our shop">
+          <img class="slide-media" src="assets/img/gallery/g-45-45b60a.jpg" alt="Inside our shop"
+               width="1206" height="678" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Inside our shop</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="46 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-46-bb737f.jpg" data-caption="A wedding day">
+          <img class="slide-media" src="assets/img/gallery/g-46-bb737f.jpg" alt="A wedding day"
+               width="542" height="960" loading="lazy" decoding="async" draggable="false">
+          <figcaption>A wedding day</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="47 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-47-8bfdcd.jpg" data-caption="With our customers">
+          <img class="slide-media" src="assets/img/gallery/g-47-8bfdcd.jpg" alt="With our customers"
+               width="1206" height="804" loading="lazy" decoding="async" draggable="false">
+          <figcaption>With our customers</figcaption>
+        </figure>
+        <figure class="slide" role="group" aria-roledescription="photo" aria-label="48 of 48"
+                data-kind="photo" data-thumb="assets/img/gallery/t-48-3f0462.jpg" data-caption="Inside our shop">
+          <img class="slide-media" src="assets/img/gallery/g-48-3f0462.jpg" alt="Inside our shop"
+               width="1280" height="720" loading="lazy" decoding="async" draggable="false">
+          <figcaption>Inside our shop</figcaption>
         </figure>
         <!-- gallery-slides:end -->
         </div>
@@ -976,8 +1269,8 @@ footer p{font-size:.9rem;color:var(--ink-2)}
         </button>
       </div>
       <div class="slides-foot">
+        <div class="slides-strip" data-slide-strip aria-label="Choose a photo or video"></div>
         <p class="slides-count"><span data-slide-now>1</span> / <span data-slide-total>1</span></p>
-        <div class="slides-dots" aria-label="Choose a photo"></div>
       </div>
     </div>
   </div>
@@ -1578,7 +1871,7 @@ document.getElementById('yr').textContent = new Date().getFullYear();
   const stage = box.querySelector('.slides-stage');
   const track = box.querySelector('.slides-track');
   const slides = [...track.querySelectorAll('.slide')];
-  const dotsBox = box.querySelector('.slides-dots');
+  const strip = box.querySelector('[data-slide-strip]');
   const nowEl = box.querySelector('[data-slide-now]');
   const totalEl = box.querySelector('[data-slide-total]');
   const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1591,29 +1884,61 @@ document.getElementById('yr').textContent = new Date().getFullYear();
     box.querySelectorAll('.slides-nav').forEach(b => b.remove());
   }
 
+  const videos = slides.map(s => s.querySelector('video'));
+
   slides.forEach((s, n) => {
-    const d = document.createElement('button');
-    d.type = 'button';
-    d.className = 'slides-dot';
-    d.setAttribute('aria-label', 'Show photo ' + (n + 1) + ' of ' + slides.length);
-    d.addEventListener('click', () => { show(n); restart(); });
-    dotsBox.appendChild(d);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'slides-thumb' + (videos[n] ? ' is-video' : '');
+    b.setAttribute('aria-label',
+      'Show ' + (videos[n] ? 'video' : 'photo') + ' ' + (n + 1) + ' of ' + slides.length);
+    const im = document.createElement('img');
+    im.src = s.dataset.thumb;
+    im.alt = '';
+    im.loading = n < 6 ? 'eager' : 'lazy';
+    im.decoding = 'async';
+    im.width = 180;
+    im.height = 180;
+    b.appendChild(im);
+    b.addEventListener('click', () => { show(n); restart(); });
+    strip.appendChild(b);
   });
-  const dots = [...dotsBox.children];
+  const thumbs = [...strip.children];
+
+  function bring() {
+    const t = thumbs[i];
+    if (!t) return;
+    const want = Math.max(0, t.offsetLeft - (strip.clientWidth - t.offsetWidth) / 2);
+    if (Math.abs(strip.scrollLeft - want) > 4) {
+      try { strip.scrollTo({ left: want, behavior: calm ? 'auto' : 'smooth' }); }
+      catch (err) { strip.scrollLeft = want; }
+    }
+  }
 
   function show(n) {
     i = (n + slides.length) % slides.length;
     track.style.transform = 'translateX(' + (-i * 100) + '%)';
     slides.forEach((s, k) => s.setAttribute('aria-hidden', k === i ? 'false' : 'true'));
-    dots.forEach((d, k) => d.setAttribute('aria-current', k === i ? 'true' : 'false'));
+    videos.forEach((v, k) => {
+      if (!v) return;
+      if (k !== i && !v.paused) v.pause();
+      v.tabIndex = k === i ? 0 : -1;
+    });
+    thumbs.forEach((d, k) => d.setAttribute('aria-current', k === i ? 'true' : 'false'));
     nowEl.textContent = i + 1;
+    bring();
   }
 
   function step(by) { show(i + by); }
 
+  function playing() { return videos.some(v => v && !v.paused && !v.ended); }
+
   function play() {
     if (calm || slides.length < 2 || timer) return;
-    timer = setInterval(() => { if (!away && !document.hidden) step(1); }, DELAY);
+    timer = setInterval(() => {
+      if (away || document.hidden || playing()) return;
+      step(1);
+    }, DELAY);
   }
   function stop() { clearInterval(timer); timer = null; }
   function restart() { stop(); play(); }
@@ -1634,8 +1959,9 @@ document.getElementById('yr').textContent = new Date().getFullYear();
   box.addEventListener('focusout', () => play());
 
   // swipe / drag — follows the finger, settles on release
+  // (a video's own controls keep their touches)
   stage.addEventListener('pointerdown', e => {
-    if (e.target.closest('.slides-nav')) return;
+    if (e.target.closest('.slides-nav') || e.target.closest('video')) return;
     down = e.clientX; dx = 0;
     track.classList.add('dragging');
     if (stage.setPointerCapture) stage.setPointerCapture(e.pointerId);
@@ -1657,11 +1983,22 @@ document.getElementById('yr').textContent = new Date().getFullYear();
   stage.addEventListener('pointercancel', release);
   track.querySelectorAll('img').forEach(im => im.addEventListener('dragstart', e => e.preventDefault()));
 
+  // a clip being watched holds the slideshow where it is
+  videos.forEach(v => {
+    if (!v) return;
+    v.addEventListener('play', stop);
+    v.addEventListener('ended', restart);
+    v.addEventListener('pause', () => { if (!playing()) restart(); });
+  });
+
   // only run while the gallery is actually on screen
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(es => {
       away = !es[0].isIntersecting;
-      if (away) stop(); else play();
+      if (away) {
+        stop();
+        videos.forEach(v => { if (v && !v.paused) v.pause(); });
+      } else play();
     }, { rootMargin: '120px' }).observe(box);
   }
 
