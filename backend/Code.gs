@@ -86,21 +86,79 @@ function setup() {
  *    docs.google.com/spreadsheets/d/THIS_PART_HERE/edit
  */
 function ss_() {
+  // 1. an explicit SHEET_ID in Script properties always wins
   var id = prop_('SHEET_ID');
   if (id) {
     try { return SpreadsheetApp.openById(String(id).trim()); }
     catch (e) {
       throw new Error('SHEET_ID is set to "' + id + '" but that spreadsheet could not be opened. ' +
-        'Check the id — it is the long code between /d/ and /edit in your sheet URL.');
+        'Copy it again from your sheet address bar: docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit');
     }
   }
+
+  // 2. a script opened from inside the sheet finds it automatically
   var active = SpreadsheetApp.getActive();   // the only direct call — everything else uses ss_()
-  if (!active) {
-    throw new Error('This script is not attached to a spreadsheet. Open your Sheet ▸ Extensions ▸ Apps Script ' +
-      'and paste this file there, OR add a Script property named SHEET_ID containing the id from your ' +
-      'sheet URL (docs.google.com/spreadsheets/d/<SHEET_ID>/edit).');
+  if (active) return active;
+
+  // 3. last resort: look in Drive for a spreadsheet with the expected name
+  var byName = driveFind_();
+  if (byName) return byName;
+
+  throw new Error('This backend cannot find your Google Sheet. Do ONE of these, then try again:\n' +
+    'A) Open your sheet ▸ Extensions ▸ Apps Script, paste this file there and use that deployment; or\n' +
+    'B) In this project: Project Settings ▸ Script properties ▸ add SHEET_ID with the code from your ' +
+    'sheet address bar (docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit); or\n' +
+    'C) Name your spreadsheet "' + (prop_('SHEET_NAME') || 'Huxley Bookings') + '" exactly, and make sure ' +
+    'this project can reach Drive.');
+}
+
+/** Find the booking spreadsheet by name — used only when the other methods fail. */
+function driveFind_() {
+  var wanted = prop_('SHEET_NAME') || 'Huxley Bookings';
+  try {
+    var it = DriveApp.getFilesByName(wanted);
+    while (it.hasNext()) {
+      var f = it.next();
+      if (typeof MimeType !== 'undefined' && f.getMimeType && f.getMimeType() !== MimeType.GOOGLE_SHEETS) continue;
+      return SpreadsheetApp.openById(f.getId());
+    }
+  } catch (e) {}
+  return null;
+}
+
+/**
+ * Run this from the editor to see exactly what the backend can see.
+ * View ▸ Logs (or the Execution log) shows the result.
+ */
+function diagnose() {
+  var lines = [];
+  lines.push('Script timezone: ' + TZ);
+  lines.push('SHEET_ID property: ' + (prop_('SHEET_ID') ? 'set' : 'NOT set'));
+  lines.push('Bound spreadsheet: ' + (SpreadsheetApp.getActive() ? 'yes' : 'no'));
+  lines.push('Found by name ("' + (prop_('SHEET_NAME') || 'Huxley Bookings') + '"): ' + (driveFind_() ? 'yes' : 'no'));
+  try {
+    var ss = ss_();
+    lines.push('Using spreadsheet: ' + ss.getName() + ' (' + ss.getId() + ')');
+    var names = [];
+    eachSheetName_(ss, function (n) { names.push(n); });
+    lines.push('Tabs: ' + names.join(', '));
+  } catch (e) {
+    lines.push('COULD NOT RESOLVE SPREADSHEET: ' + e.message);
   }
-  return active;
+  lines.push('ADMIN_USER: ' + (prop_('ADMIN_USER') || '(not set — default adminhuxley)'));
+  lines.push('Admin password: ' + ((prop_('ADMIN_PASSWORD') || prop_('ADMIN_HASH')) ? 'set' : 'NOT SET'));
+  lines.push('OWNER_EMAIL: ' + (prop_('OWNER_EMAIL') || '(not set)'));
+  lines.push('OWNER_PHONE: ' + (prop_('OWNER_PHONE') || '(not set)'));
+  lines.push('SHOP_MAPS: ' + (prop_('SHOP_MAPS') ? 'set' : '(not set)'));
+  lines.push('Photo folder: ' + (prop_('PHOTO_FOLDER') || '(not created yet)'));
+  var out = lines.join('\n');
+  Logger.log(out);
+  return out;
+}
+
+function eachSheetName_(ss, fn) {
+  var sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) fn(sheets[i].getName());
 }
 
 function tab(ss, name, headers) {

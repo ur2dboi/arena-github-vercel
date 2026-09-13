@@ -83,7 +83,17 @@ Upload `admin.html` along with `index.html` when you deploy. It is `noindex, nof
 - Google asks for permission — click **Review permissions → your account → Advanced → Go to (unsafe) → Allow**. ("Unsafe" is just Google's wording for a script you wrote yourself.)
 - Open your Sheet: you now have **Appointments**, **Blocks** and **Activity log** tabs.
 
-**3. Set your password and details**
+**3. Let the backend find your sheet** — pick whichever is easiest:
+
+| Situation | What to do |
+|---|---|
+| You opened the script from inside your sheet (**Extensions → Apps Script**) | Nothing — it is found automatically. |
+| You made the script at script.google.com | Add a Script property **`SHEET_ID`** with the code from your sheet's address bar: `docs.google.com/spreadsheets/d/`**`YOUR_SHEET_ID`**`/edit` |
+| You would rather not look up the id | Name the spreadsheet exactly **Huxley Bookings** and the backend will find it in your Drive. |
+
+**Troubleshooting:** run the function **`diagnose`** in the Apps Script editor and open **Execution log** — it prints which spreadsheet it found, which tabs exist, and which settings are missing.
+
+**4. Set your password and details**
 - In Apps Script: **⚙ Project Settings → Script properties → Add script property**:
 
 | Property | Value | Purpose |
@@ -99,7 +109,7 @@ Upload `admin.html` along with `index.html` when you deploy. It is `noindex, nof
 > `…/AKfycbxYavQPq4nWIqgHaGTKi99ZCqkGOn6OeYmu_Vccbm8rq9DS-astSch5yb_ZmQ5PmOJIRA/exec`
 > When you edit `Code.gs`, remember to publish it: **Deploy → Manage deployments → pencil → Version: New version → Deploy**.
 
-**4. Deploy the API**
+**5. Deploy the API**
 - **Deploy → New deployment → Web app**
 - Description: `booking api`
 - **Execute as: Me**
@@ -108,21 +118,21 @@ Upload `admin.html` along with `index.html` when you deploy. It is `noindex, nof
 
 > "Anyone" sounds alarming but only exposes the two endpoints in the script: reading which slots are taken (no personal data at all) and submitting a booking. Everything in the admin portal needs your password.
 
-**5. Switch the website on**
+**6. Switch the website on**
 - Open `index.html`, find `apiUrl : ''` inside `const APPT = {` (near the bottom), paste your `/exec` URL between the quotes. Save.
 - Open `admin.html`, find `const DEFAULT_URL = ''` near the bottom of the script, paste the same URL.
 - Re-upload the files. Done.
 
 If you'd rather not edit the file, skip the `index.html` step: the form will email you instead — but the admin portal only works with the URL in place, since it needs the database.
 
-**6. Sign in to your portal**
+**7. Sign in to your portal**
 - Open **`your-site.com/admin.html`** — or `huxleyjewelry.vercel.app/admin.html`.
 - Enter the `/exec` URL once, then your **username** and **password**. The browser remembers them (password for the session only).
 - The first successful sign-in converts your password to a salted SHA-256 hash and deletes the plain one.
 
 > 🔐 **Why the password is not in the website files.** Anything inside `admin.html` or `index.html` can be read by anyone who presses Ctrl+U. So the credentials live only in Google's Script properties, and every sign-in is checked on Google's side. Never paste a password into the code — of any website.
 
-**7. Change your login (recommended)**
+**8. Change your login (recommended)**
 In the portal go to **Settings** → change the username and/or password → **Save**. Your new details take effect immediately.
 
 ### What happens now, end to end

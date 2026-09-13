@@ -9,6 +9,7 @@ const CODE = fs.readFileSync('/home/user/backend/Code.gs', 'utf8');
 
 /* ---------------- fakes ---------------- */
 const files = {}, folders = {};
+const DRIVE_FILES = [];                   // spreadsheets visible by name search
 let mailSent = [];
 
 function makeDriveFile(id, blob) {
@@ -96,6 +97,11 @@ const sandbox = {
       return folders[id];
     },
     getFolderById(id) { if (!folders[id]) throw new Error('no folder'); return folders[id]; },
+    getFilesByName(name) {
+      const hits = DRIVE_FILES.filter(f => f.name === name);
+      let i = 0;
+      return { hasNext: () => i < hits.length, next: () => hits[i++] };
+    },
     Access: { ANYONE_WITH_LINK: 'ANYONE_WITH_LINK' },
     Permission: { VIEW: 'VIEW' },
     getFileById(id) { if (!files[id]) throw new Error('no file ' + id); return files[id]; }
@@ -305,7 +311,8 @@ ENV.bound = false;
 delete scriptProps.SHEET_ID;
 r = json(run('doGet', { parameter: { action: 'availability' } }));
 check('unbound script returns a helpful error',
-  r.ok === false && /not attached to a spreadsheet/.test(r.error) && /SHEET_ID/.test(r.error), String(r.error).slice(0, 90));
+  r.ok === false && /cannot find your Google Sheet/.test(r.error) && /SHEET_ID/.test(r.error) && /Extensions/.test(r.error),
+  String(r.error).slice(0, 80));
 
 // (b) standalone script + SHEET_ID -> works
 ENV.bound = false;
@@ -319,6 +326,17 @@ scriptProps.SHEET_ID = 'nonsense';
 r = json(run('doGet', { parameter: { action: 'availability' } }));
 check('a wrong SHEET_ID is reported clearly',
   r.ok === false && /could not be opened/.test(r.error), String(r.error).slice(0, 80));
+
+// (c2) no SHEET_ID and no binding, but the sheet is found by name
+ENV.bound = false;
+delete scriptProps.SHEET_ID;
+DRIVE_FILES.length = 0;
+DRIVE_FILES.push({ name: 'Huxley Bookings', getId: () => 'SHEET_ID_TEST', getMimeType: () => 'application/vnd.google-apps.spreadsheet' });
+r = json(run('doGet', { parameter: { action: 'availability' } }));
+check('found automatically when the spreadsheet is named "Huxley Bookings"', r.ok === true, r.error);
+check('diagnose() reports what it can see',
+  /Using spreadsheet: Huxley Bookings/.test(run('diagnose')) && /Admin password/.test(run('diagnose')));
+DRIVE_FILES.length = 0;
 
 // (d) back to a bound script, with SHEET_ID cleared
 delete scriptProps.SHEET_ID;
