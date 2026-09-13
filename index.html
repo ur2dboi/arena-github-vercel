@@ -1251,7 +1251,7 @@ const APPT = {
   leadHours     : 3,        // hide slots starting within this many hours
   monthsAhead   : 3,        // how far ahead clients may book
   maxPersons    : 3,
-  apiUrl        : '',       // <- paste your Apps Script Web App /exec URL here to switch on the database
+  apiUrl        : 'https://script.google.com/macros/s/AKfycbxYavQPq4nWIqgHaGTKi99ZCqkGOn6OeYmu_Vccbm8rq9DS-astSch5yb_ZmQ5PmOJIRA/exec',       // <- paste your Apps Script Web App /exec URL here to switch on the database
   refreshSec    : 90,       // how often the public calendar re-checks the database
   closed        : [],       // whole days off, e.g. ['2026-12-24','2026-12-25']
   closedWeekdays: [],       // e.g. [0] to close every Sunday
@@ -1436,7 +1436,7 @@ const APPT = {
       const sep = apiUrl().indexOf('?') < 0 ? '?' : '&';
       const res = await fetch(apiUrl() + sep + 'action=availability', { method: 'GET', redirect: 'follow' });
       const out = await res.json();
-      if (!out || out.ok !== true) throw new Error('bad response');
+      if (!out || out.ok !== true) throw new Error((out && out.error) || 'bad response');
       live = { booked: out.booked || {}, closed: out.closed || [], at: new Date() };
       if (liveNote) {
         liveNote.innerHTML = '<i class="star" aria-hidden="true"></i> Live availability — checked ' +
@@ -1555,8 +1555,14 @@ const APPT = {
           await fetchLive(true);
           return fail('Sorry — that slot was just taken. Please choose another time or date.');
         }
-        return fail('We could not save your appointment (' + ((out && out.error) || 'unknown error') +
-          '). Please call or text <a href="tel:' + SITE.phoneRaw + '" style="color:var(--gold)">' + SITE.phoneDisplay + '</a>.');
+        // The database answered but something is wrong at the Google end
+        // (not set up yet, permission problem, etc). Don't lose the booking and
+        // don't alarm the client — send it by email instead and flag it in the console.
+        console.warn('Booking backend said:', out && out.error);
+        sendByEmail();
+        markLocal();
+        showDone(true);
+        return;
       } catch (err) {
         // 2) database unreachable — fall back to email so the booking is not lost
         btn.disabled = false; btn.textContent = label;

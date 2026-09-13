@@ -54,7 +54,7 @@ var DEFAULT_USER = 'adminhuxley';
    SETUP
    ============================================================ */
 function setup() {
-  var ss = SpreadsheetApp.getActive();
+  var ss = ss_();
   ss.setSpreadsheetTimeZone(TZ);
   var a = tab(ss, SHEET_APPTS, HEADERS);
   var b = tab(ss, SHEET_BLOCK, BLOCK_HEADERS);
@@ -72,10 +72,35 @@ function setup() {
   if (!prop_('ADMIN_USER')) setProp_('ADMIN_USER', DEFAULT_USER);
 
   log_('setup', 'Ready');
-  return 'Setup complete.\n\n' +
+  return 'Setup complete on spreadsheet: ' + (ss.getName ? '"' + ss.getName() + '"' : ss.getId()) + '\n\n' +
     'Admin username: ' + (prop_('ADMIN_USER') || DEFAULT_USER) + '\n' +
     'Admin password: ' + (prop_('ADMIN_PASSWORD') ? 'set in Script properties' : 'NOT SET — add ADMIN_PASSWORD in Project Settings ▸ Script properties') + '\n\n' +
     'Now: Deploy ▸ New deployment ▸ Web app.';
+}
+
+/**
+ * Where the data lives.
+ *  • Bound script (opened from Sheet ▸ Extensions ▸ Apps Script): found automatically.
+ *  • Standalone script (created at script.google.com): add a Script property
+ *    SHEET_ID with the long id from your sheet's URL,
+ *    docs.google.com/spreadsheets/d/THIS_PART_HERE/edit
+ */
+function ss_() {
+  var id = prop_('SHEET_ID');
+  if (id) {
+    try { return SpreadsheetApp.openById(String(id).trim()); }
+    catch (e) {
+      throw new Error('SHEET_ID is set to "' + id + '" but that spreadsheet could not be opened. ' +
+        'Check the id — it is the long code between /d/ and /edit in your sheet URL.');
+    }
+  }
+  var active = SpreadsheetApp.getActive();   // the only direct call — everything else uses ss_()
+  if (!active) {
+    throw new Error('This script is not attached to a spreadsheet. Open your Sheet ▸ Extensions ▸ Apps Script ' +
+      'and paste this file there, OR add a Script property named SHEET_ID containing the id from your ' +
+      'sheet URL (docs.google.com/spreadsheets/d/<SHEET_ID>/edit).');
+  }
+  return active;
 }
 
 function tab(ss, name, headers) {
@@ -166,7 +191,7 @@ function verify_(user, pass) {
    AVAILABILITY  (public)
    ============================================================ */
 function availability() {
-  var ss = SpreadsheetApp.getActive();
+  var ss = ss_();
   var booked = {}, closed = [];
 
   each_(ss, SHEET_APPTS, function (r) {
@@ -211,7 +236,7 @@ function book_(b) {
 
     var id = 'HX-' + Utilities.formatDate(new Date(), TZ, 'yyMMdd') + '-' +
              Math.random().toString(36).slice(2, 6).toUpperCase();
-    SpreadsheetApp.getActive().getSheetByName(SHEET_APPTS).appendRow(
+    ss_().getSheetByName(SHEET_APPTS).appendRow(
       [id, new Date(), b.date, b.time, b.name, b.phone, b.email, pax, b.notes || '', 'Pending', 'Unpaid', '', '']);
     log_('website', 'New booking ' + id);
     notify_(id, b, pax);
@@ -306,7 +331,7 @@ function changePass_(b) {
    ============================================================ */
 function list_() {
   var out = [];
-  each_(SpreadsheetApp.getActive(), SHEET_APPTS, function (r, i) {
+  each_(ss_(), SHEET_APPTS, function (r, i) {
     out.push({
       row: i, id: r[0],
       submitted: r[1] ? Utilities.formatDate(new Date(r[1]), TZ, 'yyyy-MM-dd HH:mm') : '',
@@ -321,7 +346,7 @@ function list_() {
 
 function blocks_() {
   var out = [];
-  each_(SpreadsheetApp.getActive(), SHEET_BLOCK, function (r) {
+  each_(ss_(), SHEET_BLOCK, function (r) {
     out.push({ date: r[0], time: r[1] || 'ALL', reason: r[2] || '' });
   });
   return out;
@@ -344,12 +369,12 @@ function stats_() {
 
 function rowOf_(id) {
   var found = -1;
-  each_(SpreadsheetApp.getActive(), SHEET_APPTS, function (r, i) { if (r[0] === id) found = i; });
+  each_(ss_(), SHEET_APPTS, function (r, i) { if (r[0] === id) found = i; });
   return found;
 }
 
 function setStatus_(id, status) {
-  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_APPTS);
+  var sh = ss_().getSheetByName(SHEET_APPTS);
   var row = rowOf_(id);
   if (row < 0) return { ok: false, error: 'Not found' };
   sh.getRange(row, 10).setValue(status);
@@ -376,7 +401,7 @@ function setStatus_(id, status) {
 function setFee_(id, fee) {
   var row = rowOf_(id);
   if (row < 0) return { ok: false, error: 'Not found' };
-  SpreadsheetApp.getActive().getSheetByName(SHEET_APPTS).getRange(row, 11).setValue(fee);
+  ss_().getSheetByName(SHEET_APPTS).getRange(row, 11).setValue(fee);
   log_('admin', 'Fee ' + id + ' → ' + fee);
   return { ok: true, appointments: list_(), stats: stats_() };
 }
@@ -384,21 +409,21 @@ function setFee_(id, fee) {
 function setShopNote_(id, note) {
   var row = rowOf_(id);
   if (row < 0) return { ok: false, error: 'Not found' };
-  SpreadsheetApp.getActive().getSheetByName(SHEET_APPTS).getRange(row, 13).setValue(note || '');
+  ss_().getSheetByName(SHEET_APPTS).getRange(row, 13).setValue(note || '');
   return { ok: true, appointments: list_() };
 }
 
 function del_(id) {
   var row = rowOf_(id);
   if (row < 0) return { ok: false, error: 'Not found' };
-  SpreadsheetApp.getActive().getSheetByName(SHEET_APPTS).deleteRow(row);
+  ss_().getSheetByName(SHEET_APPTS).deleteRow(row);
   log_('admin', 'Deleted ' + id);
   return { ok: true, appointments: list_(), stats: stats_() };
 }
 
 function block_(date, time, reason) {
-  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_BLOCK);
-  each_(SpreadsheetApp.getActive(), SHEET_BLOCK, function (r, i) {
+  var sh = ss_().getSheetByName(SHEET_BLOCK);
+  each_(ss_(), SHEET_BLOCK, function (r, i) {
     if (r[0] === date && (r[1] || 'ALL') === time) sh.deleteRow(i);
   });
   sh.appendRow([date, time, reason, new Date()]);
@@ -407,7 +432,7 @@ function block_(date, time, reason) {
 }
 
 function unblock_(date, time) {
-  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_BLOCK);
+  var sh = ss_().getSheetByName(SHEET_BLOCK);
   var removed = 0;
   for (var i = sh.getLastRow(); i >= 2; i--) {
     var r = sh.getRange(i, 1, 1, 3).getValues()[0];
@@ -422,7 +447,7 @@ function unblock_(date, time) {
    ============================================================ */
 function photos_() {
   var out = {};
-  each_(SpreadsheetApp.getActive(), SHEET_PHOTOS, function (r) {
+  each_(ss_(), SHEET_PHOTOS, function (r) {
     if (!r[0]) return;
     out[r[0]] = { id: r[1] || '', url: r[2] || '', updated: r[3] ? String(r[3]) : '' };
   });
@@ -492,7 +517,7 @@ function resetPhoto_(b) {
   if (PHOTO_SLOTS.indexOf(slot) < 0) return { ok: false, error: 'Unknown photo slot: ' + slot };
   var previous = photos_()[slot];
   if (previous && previous.id) { try { DriveApp.getFileById(previous.id).setTrashed(true); } catch (e) {} }
-  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_PHOTOS);
+  var sh = ss_().getSheetByName(SHEET_PHOTOS);
   for (var i = sh.getLastRow(); i >= 2; i--) {
     if (sh.getRange(i, 1).getValue() === slot) sh.deleteRow(i);
   }
@@ -501,7 +526,7 @@ function resetPhoto_(b) {
 }
 
 function store_(slot, id, url) {
-  var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_PHOTOS);
+  var sh = ss_().getSheetByName(SHEET_PHOTOS);
   for (var i = sh.getLastRow(); i >= 2; i--) {
     if (sh.getRange(i, 1).getValue() === slot) sh.deleteRow(i);
   }
@@ -526,7 +551,7 @@ function each_(ss, name, fn) {
 
 function log_(who, what) {
   try {
-    var sh = SpreadsheetApp.getActive().getSheetByName(SHEET_LOG);
+    var sh = ss_().getSheetByName(SHEET_LOG);
     if (sh) sh.appendRow([new Date(), who, what, '']);
   } catch (e) {}
 }

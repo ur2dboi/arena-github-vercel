@@ -60,17 +60,22 @@ function sheet(name) {
   return SHEETS[name];
 }
 
+// flipping this simulates a standalone script with no spreadsheet attached
+const ENV = { bound: true, byId: {} };
+const BOOK = {
+  getName: () => 'Huxley Bookings',
+  getId: () => 'SHEET_ID_TEST',
+  getSheetByName: n => SHEETS[n] || null,
+  insertSheet: n => (SHEETS[n] = makeSheet(n)),
+  setSpreadsheetTimeZone() {}
+};
+
 const scriptProps = {};
 const sandbox = {
   console,
   SpreadsheetApp: {
-    getActive() {
-      return {
-        getSheetByName: n => SHEETS[n] || null,
-        insertSheet: n => (SHEETS[n] = makeSheet(n)),
-        setSpreadsheetTimeZone() {}
-      };
-    }
+    getActive() { return ENV.bound ? BOOK : null; },
+    openById(id) { if (id === 'SHEET_ID_TEST') return BOOK; throw new Error('not found'); }
   },
   DriveApp: {
     getFoldersByName(n) {
@@ -293,6 +298,33 @@ check('every admin operation refuses a bad password',
 check('unknown operations are rejected', post(auth({ op: 'dropDatabase' })).ok === false);
 check('public endpoints cannot reach admin data',
   !/appointments|Ana Reyes/.test(run('doGet', { parameter: {} }).getContent()));
+
+/* ================= 8. spreadsheet resolution ================= */
+// (a) standalone script, no SHEET_ID -> a clear, actionable error
+ENV.bound = false;
+delete scriptProps.SHEET_ID;
+r = json(run('doGet', { parameter: { action: 'availability' } }));
+check('unbound script returns a helpful error',
+  r.ok === false && /not attached to a spreadsheet/.test(r.error) && /SHEET_ID/.test(r.error), String(r.error).slice(0, 90));
+
+// (b) standalone script + SHEET_ID -> works
+ENV.bound = false;
+scriptProps.SHEET_ID = 'SHEET_ID_TEST';
+r = json(run('doGet', { parameter: { action: 'availability' } }));
+check('standalone script works once SHEET_ID is set', r.ok === true, r.error);
+check('data still comes from the right sheet', (r.booked[d(3)] || []).indexOf('2:00 PM') >= 0, JSON.stringify(r.booked));
+
+// (c) a wrong SHEET_ID is reported clearly
+scriptProps.SHEET_ID = 'nonsense';
+r = json(run('doGet', { parameter: { action: 'availability' } }));
+check('a wrong SHEET_ID is reported clearly',
+  r.ok === false && /could not be opened/.test(r.error), String(r.error).slice(0, 80));
+
+// (d) back to a bound script, with SHEET_ID cleared
+delete scriptProps.SHEET_ID;
+ENV.bound = true;
+r = json(run('doGet', { parameter: { action: 'availability' } }));
+check('bound script still works', r.ok === true, r.error);
 
 /* ================= report ================= */
 console.log('\nPASS (' + ok.length + ')');

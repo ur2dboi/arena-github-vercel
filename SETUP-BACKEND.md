@@ -73,7 +73,9 @@ Upload `admin.html` along with `index.html` when you deploy. It is `noindex, nof
 
 **1. Create the sheet**
 - Go to **sheets.new**, name it **Huxley Bookings**.
-- Menu: **Extensions → Apps Script**.
+- Then **either** open the script from inside the sheet: **Extensions → Apps Script** (recommended — everything is found automatically)
+  **or**, if you made the script separately at script.google.com, copy the long id out of your sheet's address bar and save it as a Script property called `SHEET_ID`:
+  `docs.google.com/spreadsheets/d/`**`THIS_LONG_PART`**`/edit`
 - Delete the sample code, paste everything from `backend/Code.gs`, and press **Save**.
 
 **2. Run setup once**
@@ -91,6 +93,11 @@ Upload `admin.html` along with `index.html` when you deploy. It is `noindex, nof
 | `OWNER_EMAIL` | `huxleyjewelrycreations@gmail.com` | Where new bookings are emailed |
 | `OWNER_PHONE` | `0976 463 7003` | Shown in the customer's email |
 | `SHOP_MAPS` | your Google Maps link | Sent automatically when you confirm an appointment |
+| `SHEET_ID` | *(only if the script is not attached to the sheet)* | The id from your sheet's URL |
+
+> Your deployed Web App URL is already wired into `index.html` and `admin.html`:
+> `…/AKfycbxYavQPq4nWIqgHaGTKi99ZCqkGOn6OeYmu_Vccbm8rq9DS-astSch5yb_ZmQ5PmOJIRA/exec`
+> When you edit `Code.gs`, remember to publish it: **Deploy → Manage deployments → pencil → Version: New version → Deploy**.
 
 **4. Deploy the API**
 - **Deploy → New deployment → Web app**
