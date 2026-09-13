@@ -99,7 +99,7 @@ Upload `admin.html` along with `index.html` when you deploy. It is `noindex, nof
 | Property | Value | Purpose |
 |---|---|---|
 | `ADMIN_USER` | `adminhuxley` | Your admin portal username. |
-| `ADMIN_PASSWORD` | `huxley2026` | Your admin portal password. **Required.** Change it from the portal after your first sign-in. |
+| `ADMIN_PASSWORD` | your own password | Your admin portal password. **Required.** Choose something only you know — this file is public, so never write the real one here. You can change it later from the portal's Settings tab. |
 | `OWNER_EMAIL` | `huxleyjewelrycreations@gmail.com` | Where new bookings are emailed |
 | `OWNER_PHONE` | `0976 463 7003` | Shown in the customer's email |
 | `SHOP_MAPS` | your Google Maps link | Sent automatically when you confirm an appointment |
