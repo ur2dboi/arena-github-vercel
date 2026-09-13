@@ -161,12 +161,17 @@ check('setup creates all four tabs',
   ['Appointments', 'Blocks', 'Activity log', 'Photos'].every(n => !!SHEETS[n]),
   Object.keys(SHEETS).join(', '));
 check('setup creates the Drive photo folder', Object.values(folders).some(f => f.name === 'Huxley Website Photos'));
-check('default admin username seeded', scriptProps.ADMIN_USER === 'adminhuxley', scriptProps.ADMIN_USER);
-check('no password is hard-coded into Code.gs', !/huxley2026/.test(CODE), 'password must never ship in the repo');
+check('default admin username is available', run('prop_', 'ADMIN_USER') === 'adminhuxley', run('prop_', 'ADMIN_USER'));
+check('settings can come from the CONFIG block, not just the UI',
+  run('prop_', 'SHEET_NAME') === 'Huxley Bookings' && scriptProps.SHEET_NAME === undefined,
+  'CONFIG fallback works');
+check('a Script property still overrides the CONFIG block',
+  (function () { scriptProps.SHEET_NAME = 'From the UI'; const v = run('prop_', 'SHEET_NAME'); delete scriptProps.SHEET_NAME; return v === 'From the UI'; })());
+check('no password is hard-coded into Code.gs', !/fixture-pass-1/.test(CODE), 'password must never ship in the repo');
 
 /* ================= 2. credentials ================= */
-scriptProps.ADMIN_PASSWORD = 'huxley2026';
-let r = run('doPost', { postData: { contents: JSON.stringify({ action: 'admin', op: 'list', user: 'adminhuxley', password: 'huxley2026' }) } });
+scriptProps.ADMIN_PASSWORD = 'fixture-pass-1';
+let r = run('doPost', { postData: { contents: JSON.stringify({ action: 'admin', op: 'list', user: 'adminhuxley', password: 'fixture-pass-1' }) } });
 let out = json(r);
 check('sign in with the right username + password works', out.ok === true, out.error || 'ok');
 check('login returns the username', out.user === 'adminhuxley', out.user);
@@ -174,10 +179,10 @@ check('login returns the username', out.user === 'adminhuxley', out.user);
 r = json(run('doPost', { postData: { contents: JSON.stringify({ action: 'admin', op: 'list', user: 'adminhuxley', password: 'wrong' }) } }));
 check('wrong password is refused', r.ok === false && /username or password/i.test(r.error), r.error);
 
-r = json(run('doPost', { postData: { contents: JSON.stringify({ action: 'admin', op: 'list', user: 'someoneelse', password: 'huxley2026' }) } }));
+r = json(run('doPost', { postData: { contents: JSON.stringify({ action: 'admin', op: 'list', user: 'someoneelse', password: 'fixture-pass-1' }) } }));
 check('wrong username is refused', r.ok === false, r.error);
 
-r = json(run('doPost', { postData: { contents: JSON.stringify({ action: 'admin', op: 'list', password: 'huxley2026' }) } }));
+r = json(run('doPost', { postData: { contents: JSON.stringify({ action: 'admin', op: 'list', password: 'fixture-pass-1' }) } }));
 check('missing username is refused', r.ok === false, r.error);
 
 check('password upgraded from plaintext to a hash after first login',
@@ -185,12 +190,12 @@ check('password upgraded from plaintext to a hash after first login',
   'hash=' + String(scriptProps.ADMIN_HASH).slice(0, 12) + '…');
 check('the plain password is no longer stored anywhere', scriptProps.ADMIN_PASSWORD === undefined);
 
-r = json(run('doPost', { postData: { contents: JSON.stringify({ action: 'admin', op: 'list', user: 'adminhuxley', password: 'huxley2026' }) } }));
+r = json(run('doPost', { postData: { contents: JSON.stringify({ action: 'admin', op: 'list', user: 'adminhuxley', password: 'fixture-pass-1' }) } }));
 check('sign in still works from the hash', r.ok === true, r.error);
 
 /* ================= 3. change password ================= */
 const post = body => json(run('doPost', { postData: { contents: JSON.stringify(body) } }));
-const auth = extra => Object.assign({ action: 'admin', user: 'adminhuxley', password: 'huxley2026' }, extra);
+const auth = extra => Object.assign({ action: 'admin', user: 'adminhuxley', password: 'fixture-pass-1' }, extra);
 
 r = post(auth({ op: 'changePass', newPassword: 'short' }));
 check('rejects a password under 6 characters', r.ok === false && /6 characters/.test(r.error), r.error);
@@ -201,7 +206,7 @@ check('rejects mismatched confirmation', r.ok === false && /do not match/i.test(
 r = post(auth({ op: 'changePass', newPassword: 'newpass123', confirmPassword: 'newpass123' }));
 check('changes the password', r.ok === true, r.error);
 check('old password no longer works',
-  post({ action: 'admin', op: 'list', user: 'adminhuxley', password: 'huxley2026' }).ok === false);
+  post({ action: 'admin', op: 'list', user: 'adminhuxley', password: 'fixture-pass-1' }).ok === false);
 check('new password works',
   post({ action: 'admin', op: 'list', user: 'adminhuxley', password: 'newpass123' }).ok === true);
 check('hash changed after the password change', scriptProps.ADMIN_HASH && scriptProps.ADMIN_HASH.length === 64);
@@ -217,9 +222,9 @@ check('old username is now refused',
   post({ action: 'admin', op: 'list', user: 'adminhuxley', password: 'newpass123' }).ok === false);
 
 // put it back for the remaining tests
-post({ action: 'admin', op: 'changePass', user: 'huxleyadmin', password: 'newpass123', newUser: 'adminhuxley', newPassword: 'huxley2026', confirmPassword: 'huxley2026' });
+post({ action: 'admin', op: 'changePass', user: 'huxleyadmin', password: 'newpass123', newUser: 'adminhuxley', newPassword: 'fixture-pass-1', confirmPassword: 'fixture-pass-1' });
 check('credentials restored for the rest of the run',
-  post({ action: 'admin', op: 'list', user: 'adminhuxley', password: 'huxley2026' }).ok === true);
+  post({ action: 'admin', op: 'list', user: 'adminhuxley', password: 'fixture-pass-1' }).ok === true);
 
 /* ================= 4. booking still works ================= */
 const d = n => { const x = new Date(); x.setDate(x.getDate() + n); const p = i => String(i).padStart(2, '0'); return x.getFullYear() + '-' + p(x.getMonth() + 1) + '-' + p(x.getDate()); };

@@ -29,6 +29,24 @@
  * ============================================================
  */
 
+/**
+ * ────────────────────────────────────────────────────────────
+ *  CONFIGURE HERE. Fill in the values below and you are done —
+ *  there is no need to touch Project Settings.
+ *  Script properties (if you set any) always win over this block,
+ *  so you can move a value out of this file later without breaking it.
+ * ────────────────────────────────────────────────────────────
+ */
+var CONFIG = {
+  SHEET_ID       : '',                          // the code from your sheet URL: /spreadsheets/d/<THIS>/edit
+  SHEET_NAME     : 'Huxley Bookings',           // used only if SHEET_ID is blank
+  ADMIN_USER     : 'adminhuxley',
+  ADMIN_PASSWORD : '',                          // your admin password
+  OWNER_EMAIL    : '',                          // where new bookings are emailed
+  OWNER_PHONE    : '0976 463 7003',             // shown in the client's email
+  SHOP_MAPS      : ''                           // sent to the client when you confirm
+};
+
 var TZ            = Session.getScriptTimeZone();
 var SHEET_APPTS   = 'Appointments';
 var SHEET_BLOCK   = 'Blocks';
@@ -86,7 +104,7 @@ function setup() {
  *    docs.google.com/spreadsheets/d/THIS_PART_HERE/edit
  */
 function ss_() {
-  // 1. an explicit SHEET_ID in Script properties always wins
+  // 1. an explicit SHEET_ID (Script properties win over the CONFIG block)
   var id = prop_('SHEET_ID');
   if (id) {
     try { return SpreadsheetApp.openById(String(id).trim()); }
@@ -594,7 +612,13 @@ function store_(slot, id, url) {
 /* ============================================================
    HELPERS
    ============================================================ */
-function prop_(k) { return PropertiesService.getScriptProperties().getProperty(k); }
+function prop_(k) {
+  var set = PropertiesService.getScriptProperties().getProperty(k);
+  if (set) return set;
+  var c = (typeof CONFIG !== 'undefined' && CONFIG && CONFIG[k] !== undefined && CONFIG[k] !== '')
+    ? String(CONFIG[k]).trim() : '';
+  return c || null;
+}
 function setProp_(k, v) { PropertiesService.getScriptProperties().setProperty(k, v); }
 
 function each_(ss, name, fn) {
