@@ -133,6 +133,9 @@ tr.soon td{background:rgba(220,193,121,.10)}
     <h2 style="text-align:center;font-size:1.5rem">Admin portal</h2>
     <p style="text-align:center;font-size:.86rem;color:var(--muted);margin:.6em 0 1.6em">Appointments, availability, photos and orders</p>
     <div class="err" id="loginErr"></div>
+    <p style="text-align:center;margin:-.6em 0 1.2em" id="resetConnWrap" hidden>
+      <button type="button" class="linklike" id="resetConn" hidden>Reset connection</button>
+    </p>
     <div class="err show" id="noBackend" hidden style="background:#FFFBF0;border-color:var(--gold-line);color:var(--ink-2)">
       <strong>Not connected yet.</strong> Appointments are currently arriving by email at
       <a href="mailto:huxleyjewelrycreations@gmail.com">huxleyjewelrycreations@gmail.com</a>.
@@ -330,16 +333,23 @@ const toast = msg => { const t = $('#toast'); t.textContent = msg; t.classList.a
 /* This browser may still hold an address saved from an earlier visit (an old
    deployment, say). Rather than lock the shop out with "sign in not working",
    fall back to the address built into this page and adopt it silently. */
+function timeoutSignal(ms) {
+  const c = new AbortController();
+  setTimeout(() => c.abort(), ms);
+  return c.signal;
+}
 async function send(url, payload) {
   let out, failed = false;
   try {
-    const res = await fetch(url, { method: 'POST', body: JSON.stringify(payload), redirect: 'follow' });
+    const res = await fetch(url, { method: 'POST', body: JSON.stringify(payload), redirect: 'follow', signal: timeoutSignal(60000) });
     if (!res.ok) throw new Error('Network error ' + res.status);
     out = await res.json();
     failed = !!(out && out.ok === false);
   } catch (ex) {
     failed = true;
-    out = { ok: false, error: ex.message };
+    out = { ok: false, error: ex.name === 'AbortError'
+      ? 'The backend took longer than a minute to answer.'
+      : ex.message };
   }
   if (failed && DEFAULT_URL && url !== DEFAULT_URL) {
     const retry = await send(DEFAULT_URL, payload);
@@ -356,6 +366,21 @@ async function send(url, payload) {
 }
 const api = payload => send(URL_, payload);
 const admin = (op, extra) => api(Object.assign({ action: 'admin', op, user: USER_, password: PASS }, extra || {}));
+
+/* Forget any address this browser saved on an earlier visit and try again with
+   the one built into this page. One tap beats a hunt through settings. */
+const resetBtn = $('#resetConn');
+if (resetBtn) resetBtn.addEventListener('click', () => {
+  localStorage.removeItem('huxley_api');
+  URL_ = DEFAULT_URL;
+  $('#a-url').value = '';
+  resetBtn.hidden = true; $('#resetConnWrap').hidden = true;
+  toast('Connection reset — trying again.');
+  $('#loginForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+});
+
+// wake the backend while the shop is still typing, so sign-in feels instant
+if (DEFAULT_URL) { fetch(DEFAULT_URL + '?action=ping', { redirect: 'follow' }).catch(() => {}); }
 
 /* ---------------- login ---------------- */
 $('#a-url').value = URL_ === DEFAULT_URL ? '' : URL_;
@@ -395,6 +420,11 @@ $('#loginForm').addEventListener('submit', async e => {
 
   const btn = e.target.querySelector('button[type=submit]');
   btn.disabled = true; btn.textContent = 'Signing in…';
+  // Google's free backend dozes off, so the first sign-in of the day can take
+  // half a minute. Say so instead of looking frozen.
+  const slow = setTimeout(() => {
+    if (btn.disabled) btn.textContent = 'Still signing in… (the backend is waking up)';
+  }, 4000);
   try {
     const out = await api({ action: 'admin', op: 'list', user, password: pass });
     if (!out.ok) throw new Error(out.error || 'Sign in failed');
@@ -411,7 +441,9 @@ $('#loginForm').addEventListener('submit', async e => {
       ? 'Could not reach the backend. Check the address in Backend settings below, and that the Web App is deployed with access set to "Anyone".'
       : ex.message;
     err.classList.add('show');
+    const rst = $('#resetConn'); if (rst) { rst.hidden = false; $('#resetConnWrap').hidden = false; }
   } finally {
+    clearTimeout(slow);
     btn.disabled = false; btn.textContent = 'Sign in';
   }
 });

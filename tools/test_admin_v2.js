@@ -34,6 +34,7 @@ async function testAdmin() {
       w.URL.createObjectURL = () => 'blob:x'; w.URL.revokeObjectURL = () => {};
       w.confirm = () => true;
       w.fetch = async (url, opts) => {
+        if (!opts || !opts.body) return { ok: true, json: async () => ({ ok: true }) };  // the wake-up ping
         const b = JSON.parse(opts.body);
         calls.push(b);
         const bad = b.user !== creds.user || b.password !== creds.pass;
@@ -289,10 +290,34 @@ async function testStaleAddress() {
   check('[stale] the browser now remembers the working address', w.localStorage.getItem('huxley_api') === API, w.localStorage.getItem('huxley_api'));
 }
 
+/* ---- a stuck portal must offer a one-tap way out ---- */
+async function testResetConnection() {
+  const DEAD = 'https://script.google.com/macros/s/AKfyDEAD/exec';
+  const d = new JSDOM(CONFIGURED, {
+    runScripts: 'dangerously', pretendToBeVisual: true, url: 'https://x.test/admin.html',
+    beforeParse(w) {
+      w.localStorage.setItem('huxley_api', DEAD);
+      w.fetch = async (url, opts) => {
+        if (url === DEAD) throw new TypeError('Failed to fetch');            // a dead address
+        if (!opts || !opts.body || !opts.method) return { ok: true, json: async () => ({ ok: true }) };
+        return { ok: true, json: async () => ({ ok: true, appointments: [], blocks: [], stats: {}, photos: {}, user: 'adminhuxley' }) };
+      };
+    }
+  });
+  const w = d.window, q = sel => w.document.querySelector(sel);
+  check('[reset] the escape hatch is present but out of the way', !!q('#resetConn') && q('#resetConn').hidden === true);
+  q('#a-user').value = 'adminhuxley'; q('#a-pass').value = 'fixture-pass-1';
+  q('#loginForm').dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
+  await new Promise(r => setTimeout(r, 300));
+  check('[reset] a dead saved address still ends in a signed-in portal', !q('#appView').hidden, q('#loginErr').textContent.slice(0, 70));
+  check('[reset] the working address replaced the dead one', w.localStorage.getItem('huxley_api') === API, w.localStorage.getItem('huxley_api'));
+}
+
 (async () => {
   await testAdmin();
   await testUrlFieldFallbacks();
   await testStaleAddress();
+  await testResetConnection();
   await testSite();
   console.log('\nPASS (' + ok.length + ')');
   ok.forEach(t => console.log('  ✓ ' + t));
