@@ -287,8 +287,17 @@ async function testSignIn() {
   const d1 = mk(); const w1 = d1.window, q1 = sel => w1.document.querySelector(sel);
   check('[signin] it is the sign-in page', /sign in/i.test(w1.document.title), w1.document.title);
   check('[signin] it asks for username and password only', !!q1('#a-user') && !!q1('#a-pass') && !q1('#photoGrid'));
+  check('[signin] no setup note is printed on the sign-in page',
+    !/not connected|setup-backend/i.test(w1.document.body.textContent), w1.document.body.textContent.replace(/\s+/g, ' ').slice(0, 80));
+  check('[signin] the stylesheet stops a class from painting a hidden element',
+    /\[hidden\]\s*\{\s*display\s*:\s*none\s*!important/.test(w1.document.head.innerHTML));
+  check('[signin] the address field stays shut when the backend is known',
+    q1('#urlField').hidden === true);
   check('[signin] the backend address stays hidden', q1('#urlField').hidden === true && /backend settings/i.test(q1('#toggleUrl').textContent));
-  check('[signin] no credentials are baked into the page', !/fixture-pass-1/.test(LOGIN) && !/HuxleyGold/.test(LOGIN));
+  // no password may be written into the page — checked by shape, never by naming the real one
+  const literalPass = /(pass|password|pwd)\s*[:=]\s*['"][^'"]{6,}['"]/i.test(LOGIN);
+  check('[signin] no credentials are baked into the page', !/fixture-pass-1/.test(LOGIN) && !literalPass,
+    literalPass ? 'a password literal was found' : '');
 
   q1('#a-user').value = 'adminhuxley'; q1('#a-pass').value = 'nope';
   q1('#loginForm').dispatchEvent(new w1.Event('submit', { bubbles: true, cancelable: true }));

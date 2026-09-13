@@ -45,6 +45,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold-2);
 .hint{font-size:.78rem;color:var(--muted);margin-top:14px}
 .err{display:none;background:#FDF1EC;border:1px solid rgba(192,80,58,.35);color:#8E3A26;border-radius:10px;padding:11px 14px;font-size:.84rem;margin-bottom:14px}
 .err.show{display:block}
+[hidden]{display:none !important}   /* hidden always wins, whatever class a script adds */
 .linklike{background:none;border:0;border-bottom:1px solid transparent;color:var(--muted);font-family:var(--sans);font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;padding:3px 1px}
 .linklike:hover{color:var(--gold);border-bottom-color:var(--gold-line)}
 .linklike[aria-expanded="true"]{color:var(--gold)}
@@ -136,11 +137,6 @@ tr.soon td{background:rgba(220,193,121,.10)}
     <p style="text-align:center;margin:-.6em 0 1.2em" id="resetConnWrap" hidden>
       <button type="button" class="linklike" id="resetConn" hidden>Reset connection</button>
     </p>
-    <div class="err show" id="noBackend" hidden style="background:#FFFBF0;border-color:var(--gold-line);color:var(--ink-2)">
-      <strong>Not connected yet.</strong> Appointments are currently arriving by email at
-      <a href="mailto:huxleyjewelrycreations@gmail.com">huxleyjewelrycreations@gmail.com</a>.
-      To switch on this portal, see <em>SETUP-BACKEND.md</em>.
-    </div>
     <div class="field" id="urlField" hidden>
       <label for="a-url">Backend URL</label>
       <input id="a-url" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off">
@@ -281,11 +277,7 @@ function showUrlField(show) {
   if (show) $('#a-url').value = $('#a-url').value || DEFAULT_URL;
 }
 toggleUrl.addEventListener('click', () => showUrlField(urlField.hidden));
-if (!URL_) {
-  showUrlField(true);                   // nothing to try if it is not configured
-  const nb = document.getElementById('noBackend');
-  if (nb) nb.hidden = false;
-}
+if (!URL_) showUrlField(true);          // nothing to try if it is not configured
 
 $('#loginForm').addEventListener('submit', async e => {
   e.preventDefault();
