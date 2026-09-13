@@ -53,10 +53,9 @@ All text is plain HTML in `index.html`. Section order:
 4. Collections (wedding/engagement + college rings featured, then 6 cards)
 5. Our Craft
 6. How to Order (4 steps)
-7. Good to Know (metals & stones, sizing, engraving)
-8. Start an Order (contact card — phone, location, Facebook)
-9. FAQ
-10. CTA band + footer
+7. Start an Order (contact card — phone, ordering, Facebook)
+8. FAQ
+9. CTA band + footer
 
 Search for a phrase you want to change, edit the text, save.
 
@@ -65,10 +64,9 @@ Search for a phrase you want to change, edit the text, save.
 ## 4. How customers reach you (the "Start an Order" card)
 
 There is **no order form and no email address on the site**. The Start an Order card gives
-people four direct routes instead:
+people three direct routes instead:
 
 - **Call or text** — the number with a "Copy number" button
-- **Where we are** — Bulacan & Quezon City
 - **Ordering** — by appointment, message us anytime
 - **Facebook** — the page link
 
