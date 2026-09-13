@@ -1,0 +1,9 @@
+# Huxley Jewelry Creations
+# Public pages may be indexed; the admin portal must not be.
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin.html
+
+Sitemap: https://huxleyjewelry.vercel.app/sitemap.xml
