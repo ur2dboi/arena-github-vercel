@@ -12,7 +12,7 @@ import sys
 import numpy as np
 from PIL import Image, ImageFilter
 
-PATH = 'assets/img/logo-lockup.png'
+PATH = 'assets/img/logo-lockup-v2.png'
 failures = []
 
 im = Image.open(PATH).convert('RGBA')

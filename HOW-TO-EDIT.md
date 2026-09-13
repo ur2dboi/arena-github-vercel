@@ -109,7 +109,7 @@ Your logo image has been cleaned up into a transparent version, so it sits perfe
 
 | File | Use it for |
 |---|---|
-| `assets/img/logo-lockup.png` | **The website** (header + footer). Gold lockup, transparent background, no halo. |
+| `assets/img/logo-lockup-v2.png` | **The website** (header + footer). Gold lockup, transparent background, no halo. |
 | `assets/logo/huxley-logo-transparent.png` | High-res transparent lockup — putting the logo on printed bags, boxes, cards, or on a dark background |
 | `assets/logo/huxley-logo-original.jpg` | Your original upload, kept untouched |
 | `assets/logo/og-image.jpg` | 1200×630 image shown when the site is shared on Facebook or Messenger |
@@ -119,7 +119,7 @@ Your logo image has been cleaned up into a transparent version, so it sits perfe
 
 The star from your logo is also used as the accent icon throughout the site (dividers, bullets, the scrolling strip), so everything matches.
 
-To change the logo later, drop a new transparent PNG in at `assets/img/logo-lockup.png` — keep the filename and the whole site updates.
+To change the logo later, drop a new transparent PNG in at `assets/img/logo-lockup-v2.png`. If the picture itself changes, bump the `-v2` in the name **and** in the pages that point at it — images are cached for a year, so a new filename is what makes browsers pick it up.
 
 ---
 

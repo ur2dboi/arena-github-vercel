@@ -16,13 +16,13 @@ a darkness term (for the dark outlines), and the colour channel is left
 untouched: the artwork's own soft edges are anti-aliased against ivory,
 which is the colour the site actually paints behind it.
 
-Output keeps the same on-page size as before: assets/img/logo-lockup.png
+Output keeps the same on-page size as before: assets/img/logo-lockup-v2.png
 """
 import numpy as np
 from PIL import Image
 
 SRC = 'assets/logo/huxley-logo-original.jpg'
-OUT = 'assets/img/logo-lockup.png'
+OUT = 'assets/img/logo-lockup-v2.png'
 TARGET_W = 840
 
 A = np.asarray(Image.open(SRC).convert('RGB')).astype(np.float32)
